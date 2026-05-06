@@ -19,7 +19,7 @@ Under the following terms:
 
 Recommended citation:
 
-> showrun.lee, *自主智能体安全防护体系设计 (Agent Security Protection Architecture)*, 2026, https://github.com/<your-org>/agent-security-frame, licensed under CC BY 4.0.
+> showrun.lee, *自主智能体安全防护体系设计 (Agent Security Protection Architecture)*, 2026, https://github.com/sh0wrun/agent-security-frame, licensed under CC BY 4.0.
 
 Full license text: https://creativecommons.org/licenses/by/4.0/legalcode
 

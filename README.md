@@ -150,7 +150,7 @@ python3 tools/trim_screenshots.py      # 裁白边
   title  = {自主智能体安全防护体系设计},
   author = {showrun.lee},
   year   = {2026},
-  url    = {https://github.com/<your-org>/agent-security-frame},
+  url    = {https://github.com/sh0wrun/agent-security-frame},
   note   = {137 页;10 章 + 3 附录}
 }
 ```
