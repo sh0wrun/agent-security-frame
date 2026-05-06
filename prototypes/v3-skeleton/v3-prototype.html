@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>v3 主原型 — Agent 安全防护体系</title>
+<script crossorigin src="vendor/react.production.min.js"></script>
+<script crossorigin src="vendor/react-dom.production.min.js"></script>
+<script crossorigin src="vendor/babel.min.js"></script>
+<script src="shared/data.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; color: #222; background: #fafaf9; }
+  a { color: #185FA5; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Top header */
+  .top-header { background: #fff; border-bottom: 0.5px solid #e8e6e3; padding: 18px 32px 0; position: sticky; top: 0; z-index: 100; }
+  .top-title { font-size: 20px; font-weight: 500; margin: 0 0 4px; color: #222; }
+  .top-sub { font-size: 12px; color: #888; margin-bottom: 12px; }
+  .top-tabs { display: flex; gap: 4px; }
+  .top-tab { padding: 10px 18px; font-size: 13px; cursor: pointer; border: none; background: transparent; color: #666; font-family: inherit; border-bottom: 2px solid transparent; transition: all 0.12s; position: relative; }
+  .top-tab:hover { color: #222; }
+  .top-tab.active { color: #185FA5; border-bottom-color: #185FA5; font-weight: 500; }
+  .top-tab .badge { display: inline-block; margin-left: 6px; font-size: 9px; padding: 1px 5px; border-radius: 3px; background: #eee; color: #888; vertical-align: middle; }
+  .top-tab .badge.done { background: #EAF3DE; color: #3B6D11; }
+  .top-tab .badge.wip { background: #FAEEDA; color: #854F0B; }
+  .top-tab .badge.todo { background: #f0eeeb; color: #999; }
+
+  /* Main content area */
+  .content { padding: 0; }
+  .iframe-wrap { width: 100%; height: calc(100vh - 100px); border: none; }
+  .iframe-wrap iframe { width: 100%; height: 100%; border: none; }
+
+  .content-pad { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* Placeholder */
+  .placeholder { padding: 60px 24px; text-align: center; color: #999; font-size: 14px; }
+  .placeholder h2 { color: #444; font-weight: 500; font-size: 18px; margin: 0 0 8px; }
+
+  /* === Principles Tab === */
+  .principles-intro { padding: 18px 22px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; margin-bottom: 22px; font-size: 13px; color: #555; line-height: 1.7; }
+  .principles-intro strong { color: #222; }
+  .principle-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .principle-card { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 18px 20px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+  .principle-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+  .principle-card.selected { border-width: 1.5px; }
+  .principle-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--p-color); }
+  .pc-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .pc-id { font-size: 18px; font-weight: 500; color: var(--p-color); }
+  .pc-name { font-size: 16px; font-weight: 500; color: #222; }
+  .pc-en { font-size: 11px; color: #999; margin-left: auto; font-style: italic; }
+  .pc-question { font-size: 12px; color: #666; margin-bottom: 6px; }
+  .pc-question strong { color: #222; }
+  .pc-stance { font-size: 13px; color: #444; padding: 8px 12px; background: var(--p-bg); border-radius: 6px; margin-bottom: 10px; line-height: 1.55; }
+  .pc-stance strong { color: var(--p-color); }
+  .pc-tenet-count { font-size: 11px; color: #888; }
+  .pc-tenet-count strong { color: #555; }
+
+  /* Tenets detail */
+  .tenets-detail { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 22px 26px; margin-bottom: 22px; }
+  .td-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 14px; border-bottom: 0.5px solid #f0eeeb; margin-bottom: 18px; }
+  .td-head h3 { margin: 0; font-size: 17px; font-weight: 500; }
+  .td-head .head-id { font-size: 22px; font-weight: 500; }
+  .td-stance { font-size: 13px; color: #555; margin-bottom: 18px; padding: 10px 14px; background: var(--p-bg); border-radius: 6px; line-height: 1.6; }
+  .td-stance strong { color: var(--p-color); }
+  .tenet-item { padding: 14px 0; border-bottom: 0.5px solid #f5f4f1; }
+  .tenet-item:last-child { border-bottom: none; }
+  .tenet-id { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--p-color); color: #fff; font-weight: 500; margin-right: 10px; vertical-align: middle; }
+  .tenet-title { font-size: 14px; font-weight: 500; color: #222; }
+  .tenet-body { font-size: 13px; color: #555; line-height: 1.75; margin-top: 6px; }
+  .td-sources { margin-top: 14px; padding-top: 12px; border-top: 0.5px dashed #e8e6e3; font-size: 11px; color: #888; }
+
+  /* Engineering constraints */
+  .constraints { background: #fafaf7; border: 0.5px dashed #d8d4ce; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
+  .constraints h4 { margin: 0 0 10px; font-size: 13px; font-weight: 500; color: #666; }
+  .constraint-item { padding: 8px 0; }
+  .constraint-item .name { font-size: 13px; font-weight: 500; color: #444; margin-bottom: 3px; }
+  .constraint-item .desc { font-size: 12px; color: #777; line-height: 1.6; }
+
+  /* === CIK Tab === */
+  .cik-intro { padding: 18px 22px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; margin-bottom: 22px; font-size: 13px; color: #555; line-height: 1.7; }
+  .cik-intro strong { color: #222; }
+  .asr-callout { display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-top: 12px; background: #FCEBEB; border-left: 3px solid #A32D2D; border-radius: 6px; font-size: 12.5px; }
+  .asr-callout .arrow { font-size: 18px; color: #A32D2D; font-weight: 500; }
+  .asr-callout .text { color: #5a1717; line-height: 1.5; }
+  .asr-callout .text strong { color: #A32D2D; }
+
+  .cik-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+  .cik-card { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 18px 20px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+  .cik-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.04); }
+  .cik-card.selected { border-width: 1.5px; }
+  .cik-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c-color); }
+  .cc-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .cc-id { font-size: 36px; font-weight: 600; color: var(--c-color); line-height: 1; }
+  .cc-name { font-size: 15px; font-weight: 500; color: #222; }
+  .cc-cn { font-size: 13px; color: #888; }
+  .cc-question { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 8px; padding: 6px 10px; background: var(--c-bg); border-radius: 5px; }
+  .cc-insight { font-size: 12px; color: #444; line-height: 1.55; }
+  .cc-insight strong { color: var(--c-color); }
+
+  /* CIK detail section */
+  .cik-detail { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 22px 26px; margin-bottom: 22px; }
+  .cd-head { display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 0.5px solid #f0eeeb; margin-bottom: 18px; }
+  .cd-head h3 { margin: 0; font-size: 17px; font-weight: 500; }
+  .cd-head .head-id { font-size: 28px; font-weight: 500; line-height: 1; }
+  .cd-question { font-size: 13px; color: #555; padding: 10px 14px; background: var(--c-bg); border-radius: 6px; margin-bottom: 14px; line-height: 1.6; }
+  .cd-question strong { color: var(--c-color); }
+
+  .layer-table { display: grid; grid-template-columns: 100px 1fr 1fr 0.8fr; gap: 10px; align-items: stretch; }
+  .lt-header { font-size: 11px; color: #888; font-weight: 500; padding: 6px 4px; letter-spacing: 0.4px; }
+  .lt-row-label { display: flex; align-items: center; padding: 12px; background: var(--c-bg); border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--c-color); }
+  .lt-cell { padding: 12px 14px; background: #fafaf9; border-radius: 6px; font-size: 12px; color: #444; line-height: 1.6; }
+  .lt-cell.threats { color: #7a2424; background: #FCEBEB; }
+  .lt-cell.metric { color: #2a5008; background: #EAF3DE; font-weight: 500; }
+
+  /* CIK insights bottom */
+  .cik-relations { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .relation-card { padding: 14px 18px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 10px; }
+  .relation-card h5 { margin: 0 0 6px; font-size: 13px; font-weight: 500; color: #444; }
+  .relation-card .text { font-size: 12px; color: #666; line-height: 1.65; }
+
+  /* === Arch (7-layer) Tab === */
+  .arch-intro { padding: 18px 22px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; margin-bottom: 22px; font-size: 13px; color: #555; line-height: 1.7; }
+  .arch-intro strong { color: #222; }
+  .dim-table { display: grid; grid-template-columns: 100px 1fr 1fr 1fr; gap: 10px; margin-top: 12px; font-size: 12px; }
+  .dim-table .h { font-size: 11px; color: #888; padding: 4px 6px; font-weight: 500; }
+  .dim-table .cell { padding: 8px 10px; background: #fafaf9; border-radius: 5px; line-height: 1.5; }
+  .dim-table .cell.label { background: #f0eeeb; color: #444; font-weight: 500; }
+  .dim-table .cell strong { color: #222; }
+
+  .arch-stack { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 16px 18px; margin-bottom: 22px; }
+  .arch-stack h4 { margin: 0 0 12px; font-size: 13px; font-weight: 500; color: #444; }
+  .stack-rows { display: flex; flex-direction: column; gap: 4px; }
+  .stack-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 6px; cursor: pointer; transition: all 0.12s; }
+  .stack-row:hover { transform: translateX(2px); }
+  .stack-row.selected { box-shadow: 0 0 0 2px #222; }
+  .sr-num { font-size: 14px; font-weight: 600; min-width: 24px; }
+  .sr-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .sr-en { font-size: 11px; opacity: 0.75; }
+  .sr-role { font-size: 11px; opacity: 0.85; max-width: 280px; text-align: right; }
+
+  .arch-detail { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 22px 26px; margin-bottom: 22px; }
+  .ad-head { display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 0.5px solid #f0eeeb; margin-bottom: 16px; }
+  .ad-num { font-size: 32px; font-weight: 600; line-height: 1; padding: 8px 16px; border-radius: 8px; }
+  .ad-title h3 { margin: 0; font-size: 17px; font-weight: 500; }
+  .ad-title .en { font-size: 12px; color: #888; }
+  .ad-role { font-size: 13px; color: #444; margin-bottom: 14px; padding: 10px 14px; background: #fafaf9; border-radius: 6px; line-height: 1.6; font-style: italic; }
+  .ad-section { margin-top: 12px; }
+  .ad-section .lbl { font-size: 11px; color: #888; font-weight: 500; letter-spacing: 0.3px; margin-bottom: 4px; }
+  .ad-section .body { font-size: 12.5px; color: #444; line-height: 1.7; }
+  .ad-section.threats .body { color: #7a2424; padding: 8px 12px; background: #FCEBEB; border-radius: 5px; }
+  .ad-section.note { padding: 10px 14px; background: #FFF3E0; border-left: 3px solid #C97524; border-radius: 4px; font-size: 12px; color: #5C4017; line-height: 1.6; }
+
+  /* OpenClaw mapping section */
+  .openclaw-section { padding: 22px 26px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; margin-bottom: 22px; }
+  .openclaw-section h4 { margin: 0 0 6px; font-size: 15px; font-weight: 500; color: #222; }
+  .oc-intro { font-size: 12px; color: #777; margin-bottom: 14px; line-height: 1.6; }
+  .openclaw-layout { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 1080px) { .openclaw-layout { grid-template-columns: 1fr; } }
+  .openclaw-iframe-wrap { background: #fafaf9; border: 0.5px solid #e8e6e3; border-radius: 8px; overflow: hidden; }
+  .openclaw-iframe { width: 100%; height: 800px; border: none; display: block; }
+  .openclaw-caption { padding: 8px 12px; font-size: 11px; color: #888; border-top: 0.5px solid #e8e6e3; background: #fff; }
+
+  .oc-mapping-wrap { max-height: 826px; overflow-y: auto; padding-right: 4px; }
+  .oc-mapping-wrap::-webkit-scrollbar { width: 8px; }
+  .oc-mapping-wrap::-webkit-scrollbar-track { background: #fafaf9; }
+  .oc-mapping-wrap::-webkit-scrollbar-thumb { background: #d8d4ce; border-radius: 4px; }
+  .oc-mapping-rows { display: flex; flex-direction: column; gap: 5px; }
+  .oc-row { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 9px 12px; background: #fafaf9; border-radius: 6px; font-size: 11.5px; align-items: center; transition: all 0.12s; cursor: default; }
+  .oc-row:hover { background: #f5f4f1; }
+  .oc-row .oc-layer-badge { font-size: 10px; font-weight: 600; padding: 4px 0; border-radius: 4px; text-align: center; line-height: 1; }
+  .oc-row .oc-content { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .oc-row .oc-comp { font-weight: 500; color: #222; line-height: 1.4; }
+  .oc-row .oc-role { color: #888; font-size: 11px; line-height: 1.4; }
+  .oc-row.cross-layer .oc-layer-badge { background: #f0eeeb !important; color: #777; }
+
+  /* Layer counts mini-summary */
+  .oc-summary { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 12px; background: #fafaf9; border-radius: 6px; font-size: 11px; }
+  .oc-sum-item { padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+
+  /* Surface card layer chip */
+  .sc-layer-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; padding: 2px 8px; border-radius: 4px; background: #f0eeeb; color: #555; margin-bottom: 10px; }
+  .sc-layer-chip .lc-no { font-weight: 600; }
+
+  /* === Tools Tab === */
+  .tools-intro { padding: 18px 22px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; margin-bottom: 22px; font-size: 13px; color: #555; line-height: 1.7; }
+  .tools-intro strong { color: #222; }
+
+  .tools-overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+  .tools-cat-card { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+  .tools-cat-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--cat-color); }
+  .tools-cat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+  .tcc-name { font-size: 13px; font-weight: 500; color: var(--cat-color); margin-bottom: 4px; }
+  .tcc-count { font-size: 22px; font-weight: 600; color: #222; line-height: 1; }
+  .tcc-suffix { font-size: 11px; color: #888; margin-left: 4px; }
+  .tcc-desc { font-size: 11px; color: #888; margin-top: 6px; line-height: 1.5; }
+
+  .tools-section { margin-bottom: 22px; }
+  .tools-section-head { display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; background: var(--cat-bg); border-radius: 8px 8px 0 0; border-left: 3px solid var(--cat-color); }
+  .tools-section-name { font-size: 14.5px; font-weight: 500; color: var(--cat-color); }
+  .tools-section-desc { font-size: 11px; color: #888; }
+  .tools-section-count { margin-left: auto; font-size: 11px; color: #888; }
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; padding: 12px; background: #fafaf9; border-radius: 0 0 8px 8px; }
+  .tool-card { padding: 12px 14px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 8px; transition: all 0.12s; }
+  .tool-card:hover { border-color: var(--cat-color); transform: translateY(-1px); }
+  .tc-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+  .tc-rid { font-size: 10px; padding: 1.5px 6px; border-radius: 3px; background: var(--cat-color); color: #fff; font-weight: 500; letter-spacing: 0.3px; }
+  .tc-rid.no-rid { background: #999; }
+  .tc-name { font-size: 13px; font-weight: 500; color: #222; }
+  .tc-short { font-size: 11.5px; color: #555; line-height: 1.55; margin-bottom: 6px; }
+  .tc-link { font-size: 10.5px; word-break: break-all; }
+  .tc-link a { color: #888; }
+  .tc-link a:hover { color: var(--cat-color); }
+
+  /* === Schemes Tab === */
+  .schemes-intro { padding: 18px 22px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; margin-bottom: 22px; font-size: 13px; color: #555; line-height: 1.7; }
+  .schemes-intro strong { color: #222; }
+  .schemes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .scheme-cmp-card { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 16px 18px 14px; transition: all 0.15s; position: relative; overflow: hidden; }
+  .scheme-cmp-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--s-color); }
+  .scheme-cmp-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.04); }
+  .scc-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .scc-name { font-size: 16px; font-weight: 500; }
+  .scc-breadth { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--s-bg); color: var(--s-color); margin-left: auto; font-weight: 500; }
+  .scc-meta { font-size: 11px; color: #888; margin-bottom: 12px; line-height: 1.5; }
+
+  .mini-matrix-wrap { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
+  .mini-matrix { display: grid; grid-template-columns: 22px repeat(4, 32px); gap: 2px; }
+  .mm-corner { padding: 1px; }
+  .mm-col-h { font-size: 8.5px; color: #999; text-align: center; padding: 2px 0; line-height: 1.2; }
+  .mm-row-l { font-size: 11px; color: #555; padding: 2px; background: #f5f4f1; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-weight: 500; }
+  .mm-cell { height: 18px; border-radius: 3px; }
+  .mm-side { flex: 1; font-size: 11px; color: #666; line-height: 1.55; padding-top: 14px; }
+  .mm-side .arena-label { font-size: 10px; color: #aaa; letter-spacing: 0.3px; margin-bottom: 2px; }
+  .mm-side .arena-val { font-size: 12px; color: #444; font-weight: 500; margin-bottom: 8px; }
+
+  .scc-problem { font-size: 11.5px; color: #555; line-height: 1.6; padding: 8px 10px; background: #fafaf9; border-radius: 5px; margin-bottom: 8px; }
+  .scc-link { font-size: 11px; word-break: break-all; }
+  .scc-link a { color: var(--s-color); }
+
+  /* Aggregate */
+  .aggregate { padding: 18px 22px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; }
+  .aggregate h4 { margin: 0 0 10px; font-size: 14px; font-weight: 500; color: #222; }
+  .agg-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; font-size: 13px; color: #555; border-bottom: 0.5px solid #f0eeeb; }
+  .agg-row:last-child { border-bottom: none; }
+  .agg-row .label { font-size: 11px; color: #888; min-width: 110px; }
+  .agg-row .val { font-weight: 500; color: #222; }
+  .agg-row.blank { color: #A32D2D; }
+  .agg-row.blank .val { color: #A32D2D; }
+  .blank-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #FCEBEB; color: #A32D2D; margin-right: 6px; font-weight: 500; }
+
+  /* === Surfaces Tab === */
+  .surfaces-intro { padding: 18px 22px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; margin-bottom: 22px; font-size: 13px; color: #555; line-height: 1.7; }
+  .surfaces-intro strong { color: #222; }
+  .surfaces-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+  .surface-card { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 16px 18px; transition: all 0.15s; }
+  .surface-card:hover { border-color: #999; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.04); }
+  .sc-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .sc-id { font-size: 12px; padding: 3px 8px; border-radius: 4px; background: #185FA5; color: #fff; font-weight: 500; letter-spacing: 0.5px; }
+  .sc-name { font-size: 14.5px; font-weight: 500; color: #222; }
+  .sc-desc { font-size: 12.5px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+  .sc-section { margin-top: 8px; }
+  .sc-label { font-size: 10.5px; color: #999; font-weight: 500; letter-spacing: 0.3px; margin-bottom: 4px; }
+  .sc-threat { font-size: 12px; color: #A32D2D; line-height: 1.55; padding: 6px 10px; background: #FCEBEB; border-radius: 6px; }
+  .sc-cells { display: flex; flex-wrap: wrap; gap: 4px; }
+  .sc-cell { font-size: 10.5px; padding: 2px 7px; border-radius: 4px; background: #FAEEDA; color: #854F0B; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+const D = window.V3_DATA;
+
+const TABS = [
+  { id: "overview", label: "全景图",      status: "done" },
+  { id: "principles", label: "设计原则",  status: "done" },
+  { id: "arch",       label: "架构层",    status: "done" },
+  { id: "surfaces",   label: "攻击面",    status: "done" },
+  { id: "cik",        label: "CIK 验证维度", status: "done" },
+  { id: "schemes",    label: "方案对比",  status: "done" },
+  { id: "tools",      label: "工具链全景", status: "done" },
+];
+
+function App() {
+  // 支持 URL hash 路由(便于 chromium headless 直接访问指定 tab,如 #tab=arch)
+  const initialTab = (() => {
+    const m = (window.location.hash || "").match(/tab=([a-z]+)/);
+    if (m && TABS.find(t => t.id === m[1])) return m[1];
+    return "overview";
+  })();
+  const [tab, setTab] = useState(initialTab);
+
+  React.useEffect(() => {
+    const newHash = `#tab=${tab}`;
+    if (window.location.hash !== newHash) {
+      window.history.replaceState(null, "", newHash);
+    }
+  }, [tab]);
+
+  return (
+    <div>
+      <div className="top-header">
+        <h1 className="top-title">Agent 安全防护体系 · v3 主原型</h1>
+        <div className="top-sub">基于 v3 framework charter — 顶层结构:Apex(原则) → Core(4 层 × CIK) → Overlay → Derived</div>
+        <div className="top-tabs">
+          {TABS.map(t => (
+            <button key={t.id} className={"top-tab" + (tab === t.id ? " active" : "")} onClick={() => setTab(t.id)}>
+              {t.label}
+              <span className={"badge " + t.status}>{t.status === "done" ? "已" : t.status === "wip" ? "新" : "待"}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="content">
+        {tab === "overview"   && <OverviewTab />}
+        {tab === "principles" && <PrinciplesTab />}
+        {tab === "arch"       && <ArchTab />}
+        {tab === "surfaces"   && <SurfacesTab />}
+        {tab === "cik"        && <CikTab />}
+        {tab === "schemes"    && <SchemesTab />}
+        {tab === "tools"      && <ToolsTab />}
+      </div>
+    </div>
+  );
+}
+
+function OverviewTab() {
+  return (
+    <div className="iframe-wrap">
+      <iframe src="skeleton-A.html" title="v3 全景图(骨架 A)"></iframe>
+    </div>
+  );
+}
+
+function ArchTab() {
+  const [selected, setSelected] = useState(1);
+  const sel = D.layers7.find(l => l.id === selected);
+
+  return (
+    <div className="content-pad">
+      <div className="arch-intro">
+        <strong>7 层通用智能体参考架构</strong>(v2 §2.1)— 不绑定特定框架,捕捉 OpenClaw / AutoClaw / LangChain / CrewAI / AutoGen 等所有工具增强型智能体共有的功能分层。综合自奇安信 R1(5 大组件)、arXiv:2603.27517 R7(7 个交互组件)、腾讯 R13a(4 层划分)。
+        <div className="dim-table">
+          <div className="h"></div>
+          <div className="h">7 层架构</div>
+          <div className="h">12 攻击面</div>
+          <div className="h">4 层防御</div>
+          <div className="cell label">回答的问题</div>
+          <div className="cell"><strong>由什么构成?</strong></div>
+          <div className="cell"><strong>从哪里能进入?</strong></div>
+          <div className="cell"><strong>何时何地拦截?</strong></div>
+          <div className="cell label">数量 / 角色</div>
+          <div className="cell">7 / 系统建模起点</div>
+          <div className="cell">12 / Overlay</div>
+          <div className="cell">4 / Core 主轴</div>
+        </div>
+      </div>
+
+      <div className="arch-stack">
+        <h4>7 层堆叠(从外到内)— 点击选中查看详情</h4>
+        <div className="stack-rows">
+          {D.layers7.map(l => (
+            <div key={l.id}
+              className={"stack-row" + (l.id === selected ? " selected" : "")}
+              style={{ background: l.color, color: l.textColor }}
+              onClick={() => setSelected(l.id)}>
+              <span className="sr-num">L{l.id}</span>
+              <span className="sr-name">{l.name}</span>
+              <span className="sr-en">{l.en}</span>
+              <span className="sr-role">{l.role}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="arch-detail">
+        <div className="ad-head">
+          <div className="ad-num" style={{ background: sel.color, color: sel.textColor }}>L{sel.id}</div>
+          <div className="ad-title">
+            <h3>{sel.name}</h3>
+            <span className="en">{sel.en}</span>
+          </div>
+        </div>
+        <div className="ad-role">{sel.role}</div>
+
+        <div className="ad-section">
+          <div className="lbl">职责</div>
+          <div className="body">{sel.duties}</div>
+        </div>
+        <div className="ad-section threats">
+          <div className="lbl" style={{ color: "#7a2424" }}>关键安全关切</div>
+          <div className="body">{sel.threats}</div>
+        </div>
+        <div className="ad-section">
+          <div className="lbl">典型实现</div>
+          <div className="body">{sel.examples}</div>
+        </div>
+        {sel.keyNote && (
+          <div className="ad-section note">
+            <strong>⚠ 关键洞察:</strong> {sel.keyNote}
+          </div>
+        )}
+      </div>
+
+      <OpenClawSection />
+    </div>
+  );
+}
+
+function OpenClawSection() {
+  // 按层次统计映射
+  const counts = {};
+  D.openClawMapping.forEach(m => { counts[m.layer] = (counts[m.layer] || 0) + 1; });
+
+  return (
+    <div className="openclaw-section">
+      <h4>🔌 实例化:OpenClaw 生态架构 → 7 层映射</h4>
+      <div className="oc-intro">
+        7 层是抽象模型,下方是它在 <strong>OpenClaw</strong>(主流智能体框架之一)上的具体实例化。<strong>左:OpenClaw 生态全景图</strong>;<strong>右:每个组件归属哪一层</strong>。读者可对照确认 7 层模型在真实系统中的可识别性。
+      </div>
+
+      <div className="oc-summary">
+        {D.layers7.map(l => counts[l.id] ? (
+          <span key={l.id} className="oc-sum-item" style={{ background: l.color, color: l.textColor }}>
+            L{l.id} {l.name} × {counts[l.id]}
+          </span>
+        ) : null)}
+        {counts[0] > 0 && (
+          <span className="oc-sum-item" style={{ background: "#f0eeeb", color: "#777" }}>跨层 / 周边 × {counts[0]}</span>
+        )}
+      </div>
+
+      <div className="openclaw-layout">
+        <div className="openclaw-iframe-wrap">
+          <iframe className="openclaw-iframe" src="openclaw_ecosystem.html" title="OpenClaw 生态架构"></iframe>
+          <div className="openclaw-caption">来源:openclaw_ecosystem.html(项目根目录归档)</div>
+        </div>
+
+        <div className="oc-mapping-wrap">
+          <div className="oc-mapping-rows">
+            {D.openClawMapping.map((m, i) => {
+              const isCross = m.layer === 0;
+              const l = isCross ? null : D.layers7.find(x => x.id === m.layer);
+              return (
+                <div key={i} className={"oc-row" + (isCross ? " cross-layer" : "")}>
+                  <span className="oc-layer-badge" style={l ? { background: l.color, color: l.textColor } : {}}>
+                    {isCross ? "—" : `L${l.id}`}
+                  </span>
+                  <span className="oc-content">
+                    <span className="oc-comp">{m.component}</span>
+                    <span className="oc-role">{m.role}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToolsTab() {
+  const totalTools = D.toolchain.reduce((sum, c) => sum + c.tools.length, 0);
+  return (
+    <div className="content-pad">
+      <div className="tools-intro">
+        <strong>工具链全景 = 智能体安全的开源/商业工具栈</strong>(沿用 v2 §11 的 4 类组织)。共 <strong>{totalTools} 个工具</strong>,按生命周期分 4 类:评估(验证有效性)→ 事前(供应链 + 准入)→ 事中(运行时拦截)→ 事后(审计 + 合规)。每类是若干工具组合,**核心三家框架** DefenseClaw / AGT / AEGIS 跨多类提供能力;CaMeL / Knownsec 等是补充选项。详细集成架构见 v3 Ch7。
+      </div>
+
+      <div className="tools-overview">
+        {D.toolchain.map(cat => (
+          <div key={cat.id} className="tools-cat-card" style={{ "--cat-color": cat.color }}>
+            <div className="tcc-name">{cat.name.replace(/^类别[一二三四] · /, "")}</div>
+            <div><span className="tcc-count">{cat.tools.length}</span><span className="tcc-suffix">个工具</span></div>
+            <div className="tcc-desc">{cat.desc}</div>
+          </div>
+        ))}
+      </div>
+
+      {D.toolchain.map(cat => (
+        <div key={cat.id} className="tools-section" style={{ "--cat-color": cat.color, "--cat-bg": cat.bg }}>
+          <div className="tools-section-head">
+            <span className="tools-section-name">{cat.name}</span>
+            <span className="tools-section-desc">{cat.desc}</span>
+            <span className="tools-section-count">{cat.tools.length} 个</span>
+          </div>
+          <div className="tools-grid">
+            {cat.tools.map((t, i) => (
+              <div key={i} className="tool-card" style={{ "--cat-color": cat.color }}>
+                <div className="tc-head">
+                  <span className={"tc-rid" + (t.id === "—" ? " no-rid" : "")}>{t.id}</span>
+                  <span className="tc-name">{t.name}</span>
+                </div>
+                <div className="tc-short">{t.short}</div>
+                <div className="tc-link"><a href={t.link} target="_blank" rel="noopener">{t.link}</a></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MiniMatrix({ scheme }) {
+  return (
+    <div className="mini-matrix">
+      <div className="mm-corner"></div>
+      {D.layers.map(l => <div key={l.id} className="mm-col-h">{l.short}</div>)}
+      {D.cik.map(c => (
+        <React.Fragment key={c.id}>
+          <div className="mm-row-l" style={{ color: D.cikColors[c.id].color }}>{c.id}</div>
+          {D.layers.map(l => {
+            const k = `${l.id}/${c.id}`;
+            const w = scheme.coverageA[k] || 0;
+            const bg = w === 1 ? scheme.color : w === 0.5 ? scheme.color : "#f0eeeb";
+            const opacity = w === 1 ? 0.85 : w === 0.5 ? 0.4 : 1;
+            return <div key={l.id} className="mm-cell" style={{ background: bg, opacity }} title={`${l.short}-${c.id}: ${w === 1 ? "核心" : w === 0.5 ? "部分" : "无"}`}></div>;
+          })}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function SchemesTab() {
+  const arenaName = { pre: "事前", in: "事中", post: "事后", cross: "跨智能体" };
+
+  // 计算每方案的覆盖广度 + 主战场 + 加权深度
+  const stats = D.schemes.map(s => {
+    const entries = Object.entries(s.coverageA);
+    const breadth = entries.filter(([, v]) => v > 0).length;
+    const layerWeights = { pre: 0, in: 0, post: 0, cross: 0 };
+    entries.forEach(([k, v]) => {
+      const [lid] = k.split("/");
+      if (lid in layerWeights) layerWeights[lid] += v;
+    });
+    const mainArena = Object.entries(layerWeights).sort((a, b) => b[1] - a[1])[0][0];
+    const totalDepth = Object.values(layerWeights).reduce((a, b) => a + b, 0);
+    return { ...s, breadth, mainArena, layerWeights, totalDepth };
+  }).sort((a, b) => b.totalDepth - a.totalDepth);  // 按总覆盖深度从高到低排
+
+  // 全栈叠加统计
+  const covered = new Set();
+  D.schemes.forEach(s => Object.entries(s.coverageA).forEach(([k, v]) => { if (v > 0) covered.add(k); }));
+  const totalCells = D.layers.length * D.cik.length;
+  const blanks = [];
+  D.layers.forEach(l => D.cik.forEach(c => {
+    const k = `${l.id}/${c.id}`;
+    if (!covered.has(k)) blanks.push({ key: k, layer: l, cik: c });
+  }));
+
+  return (
+    <div className="content-pad">
+      <div className="schemes-intro">
+        <strong>方案对比 = 把 6 个防护方案放到同一坐标系(4 层 × CIK)看它们各自的「防护形状」。</strong>
+        同样的工具栈,有的<em>广而浅</em>(覆盖很多 cells 但深度不一)、有的<em>窄而深</em>(只精攻几个 cells)、有的<em>偏某层</em>(主战场固定)。卡片按总覆盖深度排序;每张含迷你矩阵 + 主战场识别 + 核心解决问题。底部「叠加盲点」展示 6 方案合并后仍未覆盖的格点 — 那是**产业空白**所在。
+      </div>
+
+      <div className="schemes-grid">
+        {stats.map(s => (
+          <div key={s.id} className="scheme-cmp-card" style={{ "--s-color": s.color, "--s-bg": s.bg }}>
+            <div className="scc-head">
+              <span className="scc-name" style={{ color: s.color }}>{s.name}</span>
+              <span className="scc-breadth">{s.breadth}/12 cells</span>
+            </div>
+            <div className="scc-meta">{s.author}</div>
+
+            <div className="mini-matrix-wrap">
+              <MiniMatrix scheme={s} />
+              <div className="mm-side">
+                <div className="arena-label">主战场</div>
+                <div className="arena-val" style={{ color: s.color }}>{arenaName[s.mainArena]}</div>
+                <div className="arena-label">总深度</div>
+                <div className="arena-val">{s.totalDepth.toFixed(1)} / 12</div>
+              </div>
+            </div>
+
+            <div className="scc-problem">{s.coreProblem}</div>
+            <div className="scc-link"><a href={s.github} target="_blank" rel="noopener">{s.github}</a></div>
+          </div>
+        ))}
+      </div>
+
+      <div className="aggregate">
+        <h4>6 方案叠加后的工具栈总览</h4>
+        <div className="agg-row">
+          <span className="label">总 cells:</span>
+          <span><span className="val">{totalCells}</span> 个(4 层 × CIK)</span>
+        </div>
+        <div className="agg-row">
+          <span className="label">已覆盖:</span>
+          <span><span className="val">{covered.size}</span> 个 cells({Math.round(covered.size/totalCells*100)}%)</span>
+        </div>
+        <div className={"agg-row" + (blanks.length > 0 ? " blank" : "")}>
+          <span className="label">未覆盖盲点:</span>
+          <span>
+            <span className="val">{blanks.length}</span> 个
+            {blanks.length > 0 && <span style={{ marginLeft: 12 }}>{blanks.map(b => <span key={b.key} className="blank-tag">{b.layer.short}-{b.cik.id}</span>)}</span>}
+          </span>
+        </div>
+        {blanks.length > 0 && (
+          <div style={{ marginTop: 12, padding: "10px 14px", background: "#fafaf7", borderRadius: 6, fontSize: 12, color: "#666", lineHeight: 1.65 }}>
+            <strong style={{ color: "#A32D2D" }}>产业空白提示:</strong> 上述盲点表示当前主流防护工具栈未提供专门覆盖。例如 <strong>cross-K</strong>(跨智能体知识库污染防护)需要的能力——Crescendo 多轮越狱检测、共享 RAG 知识库更新审计——确实是当前生态的薄弱点,可作为 v3 章节中独立指出的产业空白。
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CikTab() {
+  const [selected, setSelected] = useState("C");
+  const sel = D.cik.find(c => c.id === selected);
+
+  const layerOrder = [
+    { key: "pre",   label: "事前 Pre" },
+    { key: "in",    label: "事中 In" },
+    { key: "post",  label: "事后 Post" },
+    { key: "cross", label: "跨智能体 Cross" },
+  ];
+
+  return (
+    <div className="content-pad">
+      <div className="cik-intro">
+        <strong>CIK 三维 = Agent 安全可验证性的最小不可压缩集</strong>。回答的是「安全机制在保护哪一类属性?」——C(能力)/ I(身份)/ K(知识) 三维互不重叠且穷尽,所有智能体安全事件都可以归为「权限被滥用 / 身份被伪造 / 知识被污染」中的至少一种。
+        <div className="asr-callout">
+          <span className="arrow">⚠</span>
+          <span className="text"><strong>{D.cikInsights.asrFinding.source}</strong>:{D.cikInsights.asrFinding.content}</span>
+        </div>
+      </div>
+
+      <div className="cik-cards">
+        {D.cik.map(c => (
+          <div key={c.id}
+            className={"cik-card" + (c.id === selected ? " selected" : "")}
+            style={{ "--c-color": c.color, "--c-bg": c.bg, borderColor: c.id === selected ? c.color : undefined }}
+            onClick={() => setSelected(c.id)}>
+            <div className="cc-head">
+              <span className="cc-id">{c.id}</span>
+              <div>
+                <div className="cc-name">{c.name}</div>
+                <div className="cc-cn">{c.cn}</div>
+              </div>
+            </div>
+            <div className="cc-question">{c.coreQuestion}</div>
+            <div className="cc-insight"><strong>洞察:</strong> {c.insight}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="cik-detail" style={{ "--c-color": sel.color, "--c-bg": sel.bg }}>
+        <div className="cd-head">
+          <span className="head-id" style={{ color: sel.color }}>{sel.id}</span>
+          <h3>{sel.name} <span style={{ color: "#888", fontWeight: 400, fontSize: 13, marginLeft: 6 }}>{sel.cn}</span></h3>
+        </div>
+        <div className="cd-question">
+          <strong>核心问题:</strong> {sel.coreQuestion}
+        </div>
+
+        <div className="layer-table">
+          <div className="lt-header"></div>
+          <div className="lt-header">主要威胁</div>
+          <div className="lt-header">关键防护</div>
+          <div className="lt-header">关键指标</div>
+
+          {layerOrder.map(l => {
+            const data = sel.layers[l.key];
+            return (
+              <React.Fragment key={l.key}>
+                <div className="lt-row-label">{l.label}</div>
+                <div className="lt-cell threats">{data.threats}</div>
+                <div className="lt-cell">{data.protection}</div>
+                <div className="lt-cell metric">{data.metric}</div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="cik-relations">
+        <div className="relation-card">
+          <h5>{D.cikInsights.typicalKill.title}</h5>
+          <div className="text">{D.cikInsights.typicalKill.desc}</div>
+        </div>
+        <div className="relation-card">
+          <h5>{D.cikInsights.camelByDesign.title}</h5>
+          <div className="text">{D.cikInsights.camelByDesign.desc}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SurfacesTab() {
+  return (
+    <div className="content-pad">
+      <div className="surfaces-intro">
+        <strong>12 攻击面 = Agent 系统的攻击坐标。</strong>其中 S1-S10 继承 R7 arXiv:2603.27517 的十层攻击面分析;<strong>S11(部署管线)、S12(流程决策)</strong>是本项目针对智能体场景的扩展。
+      </div>
+
+      <div className="surfaces-grid">
+        {D.surfaces.map(s => {
+          const cells = D.surfaceToCells[s.id] || [];
+          // 架构层显示
+          let layerLabel, layerBg, layerColor;
+          if (s.layerIds.length === 1 && s.layerIds[0] === 0) {
+            layerLabel = "超越架构(跨层)";
+            layerBg = "#FCEBEB"; layerColor = "#A32D2D";
+          } else if (s.layerIds.length === 1) {
+            const l = D.layers7.find(x => x.id === s.layerIds[0]);
+            layerLabel = `L${l.id} ${l.name}`;
+            layerBg = l.color; layerColor = l.textColor;
+          } else {
+            const tags = s.layerIds.map(id => D.layers7.find(x => x.id === id));
+            layerLabel = "跨层:" + tags.map(l => `L${l.id} ${l.name}`).join(" + ");
+            layerBg = "#f0eeeb"; layerColor = "#555";
+          }
+          return (
+            <div key={s.id} className="surface-card">
+              <div className="sc-head">
+                <span className="sc-id">{s.id}</span>
+                <span className="sc-name">{s.name}</span>
+              </div>
+              <div className="sc-layer-chip" style={{ background: layerBg, color: layerColor }}>
+                <span className="lc-no">架构层:</span>{layerLabel}
+              </div>
+              <div className="sc-desc">{s.desc}</div>
+
+              <div className="sc-section">
+                <div className="sc-label">典型威胁</div>
+                <div className="sc-threat">{s.threat}</div>
+              </div>
+
+              <div className="sc-section">
+                <div className="sc-label">触达 cells({cells.length})</div>
+                <div className="sc-cells">
+                  {cells.length > 0 ? cells.map(k => {
+                    const [lid, cid] = k.split("/");
+                    const layer = D.layers.find(x => x.id === lid);
+                    return <span key={k} className="sc-cell">{layer.short}-{cid}</span>;
+                  }) : <span style={{ fontSize: 11, color: "#bbb" }}>无</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderTab({ name, desc }) {
+  return (
+    <div className="content-pad">
+      <div className="placeholder">
+        <h2>「{name}」tab 待实现</h2>
+        <p>{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+function PrinciplesTab() {
+  const [selected, setSelected] = useState(D.principles[0].id);
+  const sel = D.principles.find(p => p.id === selected);
+
+  return (
+    <div className="content-pad">
+      <div className="principles-intro">
+        Agent 安全是<strong>结构性问题</strong>(v2 §1.4.3),不能靠"添加安全功能"解决。四件事各自独立、互不可替代:智能体毫秒级即可完成数据外泄 → 必须<strong>事前拦截</strong>;跨层信任不一致让组合攻击系统性脆弱(§2.3.3)→ 必须<strong>统一执行</strong>;静态态势随时间退化 → 必须<strong>持续运营</strong>;"声称安全" ≠ "证明安全" → 必须<strong>可验证</strong>。这正是 4 个原则不可压缩的根本理由:
+        <div style={{ textAlign: "center", margin: "10px 0", fontSize: 13, color: "#444" }}>
+          <strong style={{ color: "#185FA5" }}>信任谁(P1)</strong> →
+          <strong style={{ color: "#854F0B" }}> 怎么执行(P2)</strong> →
+          <strong style={{ color: "#3B6D11" }}> 怎么运营(P3)</strong> →
+          <strong style={{ color: "#A32D2D" }}> 怎么证明(P4)</strong>
+        </div>
+        任一原则缺失,体系即在该处出现结构性漏洞。点击下方卡片看各原则的立论详情。
+      </div>
+
+      <div className="principle-cards">
+        {D.principles.map(p => (
+          <div key={p.id}
+            className={"principle-card" + (p.id === selected ? " selected" : "")}
+            style={{ "--p-color": p.color, "--p-bg": p.bg, borderColor: p.id === selected ? p.color : undefined }}
+            onClick={() => setSelected(p.id)}>
+            <div className="pc-head">
+              <span className="pc-id">{p.id}</span>
+              <span className="pc-name">{p.name}</span>
+              <span className="pc-en">{p.en}</span>
+            </div>
+            <div className="pc-question"><strong>问题:</strong>{p.question}</div>
+            <div className="pc-stance"><strong>立场:</strong>{p.stance}</div>
+            <div className="pc-tenet-count"><strong>{p.tenets.length}</strong> 个立论 · 来源:<span style={{ color: "#666" }}>{p.sources}</span></div>
+          </div>
+        ))}
+      </div>
+
+      <div className="tenets-detail" style={{ "--p-color": sel.color, "--p-bg": sel.bg }}>
+        <div className="td-head">
+          <span className="head-id" style={{ color: sel.color }}>{sel.id}</span>
+          <h3>{sel.name} <span style={{ color: "#999", fontWeight: 400, fontSize: 13, marginLeft: 8 }}>{sel.en}</span></h3>
+        </div>
+        <div className="td-stance">
+          <strong>{sel.question}</strong> — {sel.stance}
+        </div>
+        {sel.tenets.map(t => (
+          <div key={t.id} className="tenet-item">
+            <div>
+              <span className="tenet-id" style={{ background: sel.color }}>{t.id}</span>
+              <span className="tenet-title">{t.title}</span>
+            </div>
+            <div className="tenet-body">{t.body}</div>
+          </div>
+        ))}
+        <div className="td-sources">来源:{sel.sources}</div>
+      </div>
+
+      <div className="constraints">
+        <h4>工程约束(非原则,但落地必须兼顾)</h4>
+        {D.engineeringConstraints.map((c, i) => (
+          <div key={i} className="constraint-item">
+            <div className="name">{c.name}</div>
+            <div className="desc">{c.desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>骨架 B — 12 攻击面 × 4 层矩阵</title>
+<script crossorigin src="vendor/react.production.min.js"></script>
+<script crossorigin src="vendor/react-dom.production.min.js"></script>
+<script crossorigin src="vendor/babel.min.js"></script>
+<script src="shared/data.js"></script>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; color: #222; background: #fafaf9; }
+  a { color: #185FA5; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px 80px; }
+  .topbar { display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px; }
+  .topbar h1 { font-weight: 500; font-size: 24px; margin: 0; }
+  .topbar .badge { font-size: 11px; padding: 3px 10px; border-radius: 6px; background: #FAEEDA; color: #854F0B; }
+  .sub { color: #666; margin-bottom: 28px; font-size: 14px; }
+  .nav { font-size: 13px; color: #888; margin-bottom: 24px; }
+  .scheme-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; padding: 16px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; }
+  .scheme-bar-label { font-size: 13px; color: #666; padding: 6px 4px; }
+  .scheme-btn { font-size: 13px; padding: 6px 14px; border-radius: 8px; border: 0.5px solid #ddd; background: #fff; cursor: pointer; transition: all 0.12s; font-family: inherit; }
+  .scheme-btn:hover { border-color: #999; }
+  .scheme-btn.active { border: 0.5px solid currentColor; }
+  .matrix { display: grid; grid-template-columns: 90px repeat(12, 1fr); gap: 4px; margin-bottom: 28px; }
+  .col-header { font-size: 11px; color: #444; padding: 8px 6px; text-align: center; font-weight: 500; background: #f5f4f1; border-radius: 6px; line-height: 1.3; cursor: help; }
+  .col-header .sid { color: #888; font-size: 10px; display: block; margin-bottom: 2px; }
+  .corner { padding: 8px 6px; }
+  .row-label { padding: 14px 10px; font-size: 13px; color: #fff; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 500; text-align: center; }
+  .cell { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 6px; min-height: 50px; cursor: pointer; transition: all 0.15s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .cell:hover { border-color: #555; }
+  .cell-coverage { position: absolute; inset: 0; border-radius: 6px; pointer-events: none; opacity: 0.85; }
+  .cell-cik-label { position: relative; z-index: 1; font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: #666; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+  .detail-panel { padding: 16px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; font-size: 13px; min-height: 60px; }
+  .detail-panel .empty { color: #999; }
+  .detail-panel h4 { font-weight: 500; font-size: 14px; margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+const D = window.V3_DATA;
+
+// 每个攻击面的主导 CIK 维度(用于 cell 内小标签)
+// 简化:一个 surface 给一个主 CIK(细节里可以有次)
+const SURFACE_PRIMARY_CIK = {
+  S1: "I", S2: "C", S3: "K", S4: "I", S5: "C", S6: "C",
+  S7: "C", S8: "C", S9: "K", S10: "I", S11: "I", S12: "C",
+};
+
+function App() {
+  const [activeSchemes, setActiveSchemes] = useState(new Set(["AEGIS"]));
+  const [selectedCell, setSelectedCell] = useState(null);
+
+  function toggleScheme(id) {
+    const next = new Set(activeSchemes);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setActiveSchemes(next);
+  }
+
+  function cellCoverage(layerId, surfaceId) {
+    const key = `${layerId}/${surfaceId}`;
+    let max = 0;
+    let contributors = [];
+    for (const s of D.schemes) {
+      if (!activeSchemes.has(s.id)) continue;
+      const w = s.coverageB[key] || 0;
+      if (w > 0) contributors.push({ scheme: s, weight: w });
+      if (w > max) max = w;
+    }
+    return { weight: max, contributors };
+  }
+
+  const stats = useMemo(() => {
+    const total = D.layers.length * D.surfaces.length; // 48
+    let covered = 0, partial = 0;
+    for (const l of D.layers) for (const s of D.surfaces) {
+      const w = cellCoverage(l.id, s.id).weight;
+      if (w >= 1) covered++;
+      else if (w >= 0.5) partial++;
+    }
+    return { total, covered, partial };
+  }, [activeSchemes]);
+
+  return (
+    <div className="container">
+      <div className="topbar">
+        <span className="badge">骨架 B</span>
+        <h1>12 攻击面 × 4 层矩阵(威胁中心)</h1>
+      </div>
+      <p className="sub">主矩阵 = 48 cells。每个 cell 内的小标签是该攻击面的主导 CIK 维度。</p>
+      <div className="nav"><a href="index.html">← 返回对比</a> &nbsp;|&nbsp; <a href="skeleton-A.html">查看骨架 A →</a></div>
+
+      <div className="scheme-bar">
+        <span className="scheme-bar-label">方案切换:</span>
+        {D.schemes.map(s => {
+          const active = activeSchemes.has(s.id);
+          return (
+            <button
+              key={s.id}
+              className={"scheme-btn" + (active ? " active" : "")}
+              style={active ? { background: s.bg, color: s.color, borderColor: s.color } : {}}
+              onClick={() => toggleScheme(s.id)}
+            >
+              {s.name}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="legend">
+        <span><span className="legend-swatch" style={{ background: "#854F0B", opacity: 0.85 }}></span>核心覆盖</span>
+        <span><span className="legend-swatch" style={{ background: "#854F0B", opacity: 0.4 }}></span>部分覆盖</span>
+        <span><span className="legend-swatch" style={{ background: "#fff", border: "0.5px solid #ddd" }}></span>无覆盖</span>
+        <span style={{ marginLeft: 12, color: "#888" }}>cell 内小标签:</span>
+        {D.cik.map(c => (
+          <span key={c.id} style={{ background: D.cikColors[c.id].bg, color: D.cikColors[c.id].color, fontSize: 10, padding: "1px 6px", borderRadius: 3 }}>{c.id} {c.name}</span>
+        ))}
+        <span style={{ marginLeft: "auto", color: "#888" }}>
+          覆盖面积:<strong style={{ color: "#222" }}>{stats.covered}</strong> 核心 + <strong style={{ color: "#222" }}>{stats.partial}</strong> 部分 / {stats.total} cells
+        </span>
+      </div>
+
+      <div className="matrix">
+        <div className="corner"></div>
+        {D.surfaces.map(s => (
+          <div key={s.id} className="col-header" title={s.name}>
+            <span className="sid">{s.id}</span>{s.short}
+          </div>
+        ))}
+        {D.layers.map(l => (
+          <React.Fragment key={l.id}>
+            <div className="row-label" style={{ background: l.color }}>{l.name}</div>
+            {D.surfaces.map(s => {
+              const cov = cellCoverage(l.id, s.id);
+              const colorScheme = cov.contributors[0]?.scheme;
+              const bgColor = colorScheme?.color || "#854F0B";
+              const opacity = cov.weight === 1 ? 0.85 : cov.weight === 0.5 ? 0.4 : 0;
+              const isSelected = selectedCell === `${l.id}/${s.id}`;
+              const cik = SURFACE_PRIMARY_CIK[s.id];
+              const cikStyle = D.cikColors[cik];
+              const labelOnDark = cov.weight >= 1;
+              return (
+                <div
+                  key={s.id}
+                  className="cell"
+                  style={{ borderColor: isSelected ? "#222" : "#e8e6e3", borderWidth: isSelected ? 1.5 : 0.5 }}
+                  onClick={() => setSelectedCell(isSelected ? null : `${l.id}/${s.id}`)}
+                  title={`${l.name} × ${s.name}`}
+                >
+                  <div className="cell-coverage" style={{ background: bgColor, opacity }}></div>
+                  <span className="cell-cik-label" style={labelOnDark ? { background: "rgba(255,255,255,0.85)", color: cikStyle.color } : { background: cikStyle.bg, color: cikStyle.color }}>
+                    {cik}
+                  </span>
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div className="detail-panel">
+        {selectedCell ? (() => {
+          const [lid, sid] = selectedCell.split("/");
+          const layer = D.layers.find(x => x.id === lid);
+          const surface = D.surfaces.find(x => x.id === sid);
+          const cik = D.cik.find(x => x.id === SURFACE_PRIMARY_CIK[sid]);
+          const cov = cellCoverage(lid, sid);
+          return (
+            <div>
+              <h4>{layer.name} × {surface.id} {surface.name}</h4>
+              <p style={{ color: "#666", margin: "0 0 10px", fontSize: 12 }}>主导 CIK 维度:<span style={{ background: D.cikColors[cik.id].bg, color: D.cikColors[cik.id].color, padding: "1px 7px", borderRadius: 4, fontSize: 11, marginLeft: 4 }}>{cik.id} {cik.name}</span> — {cik.desc}</p>
+              <div>
+                <strong style={{ fontSize: 12, color: "#888" }}>方案覆盖:</strong>
+                <div style={{ marginTop: 6 }}>
+                  {cov.contributors.length > 0 ? cov.contributors.map(c => (
+                    <div key={c.scheme.id} style={{ fontSize: 12, color: "#555", marginBottom: 2 }}>
+                      <span style={{ background: c.scheme.bg, color: c.scheme.color, padding: "1px 7px", borderRadius: 4, fontSize: 11, marginRight: 6 }}>{c.scheme.name}</span>
+                      {c.weight === 1 ? "核心覆盖" : "部分覆盖"}
+                    </div>
+                  )) : <span style={{ color: "#bbb", fontSize: 12 }}>(当前激活方案不覆盖此 cell)</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })() : <span className="empty">点击任一 cell 查看详情</span>}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>v3 骨架对比 — A vs B</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 760px; margin: 60px auto; padding: 0 24px; color: #222; line-height: 1.6; }
+  h1 { font-weight: 500; font-size: 28px; margin-bottom: 8px; }
+  .sub { color: #666; margin-bottom: 40px; }
+  .card { display: block; border: 0.5px solid #ddd; border-radius: 14px; padding: 24px 28px; margin-bottom: 16px; text-decoration: none; color: inherit; transition: border-color 0.15s; }
+  .card:hover { border-color: #185FA5; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 6px; margin-right: 10px; vertical-align: middle; }
+  .badge-A { background: #E6F1FB; color: #185FA5; }
+  .badge-B { background: #FAEEDA; color: #854F0B; }
+  .card-title { font-size: 18px; font-weight: 500; margin-bottom: 8px; vertical-align: middle; display: inline-block; }
+  .card-desc { color: #555; font-size: 14px; margin-bottom: 12px; }
+  .card-points { font-size: 13px; color: #777; }
+  .card-points li { margin-bottom: 4px; }
+  hr { border: none; border-top: 0.5px solid #eee; margin: 40px 0 24px; }
+  .footer { font-size: 13px; color: #888; }
+</style>
+</head>
+<body>
+  <h1>v3 主原型 入口</h1>
+  <p class="sub">v3 framework 已锁定:Core 双主轴 4 层 × CIK,12 攻击面降为 Overlay。下面是 v3 主原型(多 tab 整合),以及 v3 决策阶段保留的骨架 A/B 对比留档。</p>
+
+  <a class="card" href="v3-prototype.html" style="border-color: #185FA5;">
+    <span class="badge" style="background: #185FA5; color: #fff;">v3 主原型</span>
+    <div class="card-title">Agent 安全防护体系(6 tab 整合视图)</div>
+    <div class="card-desc">v3 主原型,含全景图 / 设计原则 / 攻击面 / CIK / 方案对比 / 工具链 6 个 tab。其中"全景图"= 骨架 A,"设计原则"已实现,其余 4 tab 待做。</div>
+    <ul class="card-points">
+      <li>顶层结构:Apex 原则 → Core(4 层 × CIK)→ Overlay 攻击面 + 方案 → Derived 画像/工具/测试</li>
+      <li>tab 状态:已 = done · 新 = work-in-progress · 待 = todo</li>
+    </ul>
+  </a>
+
+  <hr style="margin: 24px 0;">
+  <h2 style="font-weight: 500; font-size: 18px; color: #666; margin-bottom: 8px;">骨架 A/B 决策留档</h2>
+  <p class="sub" style="margin-bottom: 16px;">v3 决策阶段产物。骨架 A 已被 v3 主原型采纳,骨架 B 不作为顶层全景图,保留作威胁视角辅助视图。</p>
+
+  <a class="card" href="skeleton-A.html">
+    <span class="badge badge-A">骨架 A</span>
+    <div class="card-title">CIK × 4 层矩阵(可验证性主线)</div>
+    <div class="card-desc">主矩阵 = 12 cells(4 层 × CIK)。12 攻击面作为 overlay。</div>
+    <ul class="card-points">
+      <li>主轴是"对什么属性做验证"(C/I/K)+ "何时何地"(4 层)</li>
+      <li>方案覆盖以 12 cells 的色块铺面呈现</li>
+      <li>更突出"安全可验证性"主线,与 v2 §10 验证矩阵一脉相承</li>
+    </ul>
+  </a>
+
+  <a class="card" href="skeleton-B.html">
+    <span class="badge badge-B">骨架 B</span>
+    <div class="card-title">12 攻击面 × 4 层矩阵(威胁中心)</div>
+    <div class="card-desc">主矩阵 = 48 cells(4 层 × 12 攻击面)。CIK 退为 cell 属性。</div>
+    <ul class="card-points">
+      <li>主轴是"防什么威胁"(12 攻击面) + "何时何地"(4 层)</li>
+      <li>方案覆盖以 48 cells 的更细粒度色块呈现,"覆盖面积"最直观</li>
+      <li>与 OWASP Top 10 / MITRE ATT&CK 风格对齐,业内读者易上手</li>
+    </ul>
+  </a>
+
+  <hr>
+  <p class="footer">
+    数据来源:<code>shared/data.js</code>(可独立编辑)。<br>
+    渲染方式:React 17 UMD + Babel standalone(CDN),无需 npm install。
+  </p>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>骨架 A — CIK × 4 层矩阵</title>
+<script crossorigin src="vendor/react.production.min.js"></script>
+<script crossorigin src="vendor/react-dom.production.min.js"></script>
+<script crossorigin src="vendor/babel.min.js"></script>
+<script src="shared/data.js"></script>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; color: #222; background: #fafaf9; }
+  a { color: #185FA5; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+  .topbar { display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+  .topbar h1 { font-weight: 500; font-size: 24px; margin: 0; }
+  .topbar .badge { font-size: 11px; padding: 3px 10px; border-radius: 6px; background: #E6F1FB; color: #185FA5; }
+  .topbar .v-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f0eeeb; color: #777; }
+  .sub { color: #666; margin-bottom: 14px; font-size: 14px; }
+  .nav { font-size: 13px; color: #888; margin-bottom: 24px; }
+
+  /* Selector bar */
+  .scheme-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; padding: 14px 16px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; align-items: center; position: relative; }
+  .bar-label { font-size: 13px; color: #666; padding: 6px 4px; }
+  .scheme-wrap { position: relative; display: inline-block; }
+  .scheme-btn { font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 0.5px solid #ddd; background: #fff; cursor: pointer; transition: all 0.12s; font-family: inherit; }
+  .scheme-btn:hover { border-color: #999; }
+  .scheme-btn.active { border: 0.5px solid currentColor; }
+  .scheme-coverage-stat { font-size: 11px; opacity: 0.7; margin-left: 4px; }
+  .scheme-info-icon { display: inline-block; margin-left: 6px; width: 14px; height: 14px; line-height: 14px; text-align: center; border-radius: 50%; background: #ddd; color: #fff; font-size: 10px; font-weight: bold; cursor: help; vertical-align: middle; }
+  .scheme-tooltip { position: absolute; top: calc(100% + 8px); left: 0; z-index: 100; width: 360px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 10px; padding: 14px 16px; box-shadow: 0 6px 24px rgba(0,0,0,0.08); font-size: 12px; line-height: 1.55; color: #333; pointer-events: none; }
+  .scheme-tooltip::before { content: ""; position: absolute; top: -6px; left: 18px; width: 10px; height: 10px; background: #fff; border-left: 0.5px solid #e8e6e3; border-top: 0.5px solid #e8e6e3; transform: rotate(45deg); }
+  .scheme-tooltip h5 { font-size: 14px; font-weight: 500; margin: 0 0 4px; }
+  .scheme-tooltip .row { margin-bottom: 6px; }
+  .scheme-tooltip .row strong { display: inline-block; min-width: 56px; color: #888; font-weight: 500; font-size: 11px; }
+  .scheme-tooltip .row a { color: inherit; word-break: break-all; }
+  .scheme-tooltip .core-problem { margin-top: 8px; padding-top: 8px; border-top: 0.5px dashed #e8e6e3; color: #444; }
+
+  /* Legend */
+  .legend { display: flex; gap: 14px; font-size: 12px; color: #666; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+  .legend-divider { color: #ccc; padding: 0 4px; }
+  .stats { margin-left: auto; color: #888; font-size: 12px; }
+  .stats strong { color: #222; }
+
+  /* Matrix */
+  .matrix-wrap { position: relative; margin-bottom: 28px; }
+  .matrix { display: grid; grid-template-columns: 130px repeat(4, 1fr); gap: 6px; position: relative; }
+  .matrix-corner { padding: 8px 12px; }
+  .matrix-header { padding: 0; }
+  .matrix-header-name { font-size: 13px; color: #444; padding: 8px 12px; text-align: center; font-weight: 500; }
+
+  .row-label { padding: 14px 12px; font-size: 13px; color: #444; display: flex; flex-direction: column; justify-content: center; background: #f5f4f1; border-radius: 8px; }
+  .row-label .cik-id { font-size: 22px; font-weight: 500; color: #222; line-height: 1; }
+  .row-label .cik-name { font-size: 11px; color: #888; margin-top: 4px; }
+  .row-label .cik-desc { font-size: 10px; color: #aaa; margin-top: 4px; line-height: 1.3; }
+
+  .cell { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 8px; padding: 10px; min-height: 92px; cursor: pointer; transition: all 0.15s; position: relative; display: flex; flex-direction: column; gap: 4px; }
+  .cell:hover { border-color: #999; }
+  .cell.selected { border-color: #222 !important; border-width: 1.5px !important; }
+  .cell.surface-related { box-shadow: inset 0 0 0 2px #185FA5; }
+
+  .cell-coverage { position: absolute; inset: 0; border-radius: 8px; pointer-events: none; opacity: 0.85; }
+  .cell-content { position: relative; z-index: 1; }
+  .cell-id { font-size: 10px; color: #999; font-weight: 500; margin-bottom: 2px; letter-spacing: 0.5px; }
+  .cell-desc { font-size: 11px; color: #555; line-height: 1.3; }
+
+  /* 实时拦截主战场:橙色圆点 */
+  .cell.tier-in-frontline::before { content: ""; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: #854F0B; z-index: 2; }
+  /* 跨层信任锚 */
+  .cell.tier-trust-anchor::before { content: "⚓"; position: absolute; top: 4px; right: 4px; font-size: 11px; z-index: 2; color: #A32D2D; }
+
+  /* Surface chips bar */
+  .surface-bar { background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; padding: 12px 14px; margin-bottom: 20px; }
+  .surface-bar-label { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .surface-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .surface-chip { font-size: 11px; padding: 4px 9px; border-radius: 6px; background: #f5f4f1; color: #555; cursor: pointer; border: 0.5px solid transparent; transition: all 0.12s; user-select: none; display: inline-flex; align-items: center; gap: 4px; }
+  .surface-chip:hover { background: #e8e6e3; }
+  .surface-chip.active { background: #E6F1FB; color: #185FA5; border-color: #185FA5; }
+  .surface-chip.cell-related { background: #FAEEDA; color: #854F0B; border-color: #d8b87b; }
+  .surface-chip.expanded { background: #222; color: #fff; border-color: #222; }
+  .surface-chip-caret { font-size: 9px; opacity: 0.6; transition: transform 0.15s; }
+  .surface-chip.expanded .surface-chip-caret { transform: rotate(180deg); opacity: 1; }
+
+  /* Surface detail dropdown */
+  .surface-detail-panel { margin-top: 14px; padding: 14px 16px; background: #fafaf9; border: 0.5px solid #e8e6e3; border-radius: 10px; font-size: 12.5px; line-height: 1.6; animation: slideDown 0.15s ease-out; }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .surface-detail-panel .sd-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 0.5px solid #e8e6e3; }
+  .surface-detail-panel .sd-id { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #185FA5; color: #fff; font-weight: 500; }
+  .surface-detail-panel .sd-name { font-size: 14px; font-weight: 500; color: #222; }
+  .surface-detail-panel .sd-close { margin-left: auto; cursor: pointer; color: #999; font-size: 16px; line-height: 1; padding: 4px 8px; border-radius: 4px; }
+  .surface-detail-panel .sd-close:hover { background: #f0eeeb; color: #444; }
+  .surface-detail-panel .sd-row { margin-bottom: 8px; display: grid; grid-template-columns: 70px 1fr; gap: 10px; }
+  .surface-detail-panel .sd-row strong { color: #888; font-weight: 500; font-size: 11px; padding-top: 2px; }
+  .surface-detail-panel .sd-row .threat-text { color: #A32D2D; }
+  .surface-detail-panel .sd-cells { display: flex; flex-wrap: wrap; gap: 4px; }
+  .surface-detail-panel .sd-cell-tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: #FAEEDA; color: #854F0B; }
+
+  /* Detail panel */
+  .detail-panel { padding: 16px 18px; background: #fff; border: 0.5px solid #e8e6e3; border-radius: 12px; font-size: 13px; min-height: 60px; }
+  .detail-panel .empty { color: #999; }
+  .detail-panel h4 { font-weight: 500; font-size: 14px; margin: 0 0 6px; }
+  .detail-section { margin-top: 12px; }
+  .detail-section strong { font-size: 12px; color: #888; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+const D = window.V3_DATA;
+
+function App() {
+  const [activeSchemes, setActiveSchemes] = useState(new Set(["AEGIS"]));
+  const [selectedCell, setSelectedCell] = useState(null);
+  const [activeSurfaces, setActiveSurfaces] = useState(new Set());
+  const [hoverScheme, setHoverScheme] = useState(null);
+  const [expandedSurface, setExpandedSurface] = useState(null);
+
+  function toggleScheme(id) {
+    const next = new Set(activeSchemes);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setActiveSchemes(next);
+  }
+  function toggleSurface(id) {
+    const next = new Set(activeSurfaces);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setActiveSurfaces(next);
+  }
+
+  function cellCoverage(layerId, cikId) {
+    const key = `${layerId}/${cikId}`;
+    let max = 0;
+    let contributors = [];
+    for (const s of D.schemes) {
+      if (!activeSchemes.has(s.id)) continue;
+      const w = s.coverageA[key] || 0;
+      if (w > 0) contributors.push({ scheme: s, weight: w });
+      if (w > max) max = w;
+    }
+    return { weight: max, contributors };
+  }
+
+  function cellSurfaces(layerId, cikId) {
+    const key = `${layerId}/${cikId}`;
+    return D.surfaces.filter(s => (D.surfaceToCells[s.id] || []).includes(key));
+  }
+
+  const surfaceRelatedCells = useMemo(() => {
+    const set = new Set();
+    for (const sid of activeSurfaces) {
+      for (const k of (D.surfaceToCells[sid] || [])) set.add(k);
+    }
+    return set;
+  }, [activeSurfaces]);
+
+  const cellRelatedSurfaces = useMemo(() => {
+    if (!selectedCell) return new Set();
+    const [lid, cid] = selectedCell.split("/");
+    return new Set(cellSurfaces(lid, cid).map(s => s.id));
+  }, [selectedCell]);
+
+  const stats = useMemo(() => {
+    const total = D.layers.length * D.cik.length;
+    let covered = 0, partial = 0;
+    for (const l of D.layers) for (const c of D.cik) {
+      const w = cellCoverage(l.id, c.id).weight;
+      if (w >= 1) covered++;
+      else if (w >= 0.5) partial++;
+    }
+    return { total, covered, partial };
+  }, [activeSchemes]);
+
+  const schemeBreadth = useMemo(() => {
+    const m = {};
+    for (const s of D.schemes) {
+      m[s.id] = Object.values(s.coverageA).filter(v => v > 0).length;
+    }
+    return m;
+  }, []);
+
+  return (
+    <div className="container">
+      <div className="topbar">
+        <span className="badge">骨架 A</span>
+        <h1>CIK × 4 层矩阵</h1>
+        <span className="v-tag">v3</span>
+      </div>
+      <p className="sub">主矩阵 12 cells = 4 层 × CIK。包含:实时拦截主战场标识 / 跨层信任锚 / 攻击面双向链接。</p>
+      <div className="nav"><a href="index.html">← 返回对比</a> &nbsp;|&nbsp; <a href="skeleton-B.html">查看骨架 B →</a></div>
+
+      <div className="scheme-bar">
+        <span className="bar-label">方案切换:</span>
+        {D.schemes.map(s => {
+          const active = activeSchemes.has(s.id);
+          return (
+            <span key={s.id} className="scheme-wrap"
+              onMouseEnter={() => setHoverScheme(s.id)}
+              onMouseLeave={() => setHoverScheme(null)}>
+              <button
+                className={"scheme-btn" + (active ? " active" : "")}
+                style={active ? { background: s.bg, color: s.color, borderColor: s.color } : {}}
+                onClick={() => toggleScheme(s.id)}
+              >
+                {s.name}<span className="scheme-coverage-stat">({schemeBreadth[s.id]}/12)</span>
+                <span className="scheme-info-icon" title="鼠标悬停看详情">i</span>
+              </button>
+              {hoverScheme === s.id && (
+                <div className="scheme-tooltip" style={{ borderColor: s.color }}>
+                  <h5 style={{ color: s.color }}>{s.name}</h5>
+                  <div style={{ color: "#888", fontSize: 11, marginBottom: 8 }}>{s.desc}</div>
+                  <div className="row"><strong>作者:</strong>{s.author}</div>
+                  <div className="row"><strong>论文:</strong>{s.paper}</div>
+                  <div className="row"><strong>GitHub:</strong><a href={s.github} target="_blank" rel="noopener">{s.github}</a></div>
+                  <div className="core-problem"><strong style={{ color: "#888", fontSize: 11 }}>核心解决:</strong><br/>{s.coreProblem}</div>
+                </div>
+              )}
+            </span>
+          );
+        })}
+      </div>
+
+      <div className="legend">
+        <span><span className="legend-swatch" style={{ background: "#185FA5", opacity: 0.85 }}></span>核心覆盖</span>
+        <span><span className="legend-swatch" style={{ background: "#185FA5", opacity: 0.4 }}></span>部分覆盖</span>
+        <span className="legend-divider">|</span>
+        <span><span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#854F0B", marginRight: 5, verticalAlign: "middle" }}></span>实时拦截主战场</span>
+        <span><span style={{ color: "#A32D2D", marginRight: 4 }}>⚓</span>跨层信任锚</span>
+        <span className="stats">
+          覆盖面积:<strong>{stats.covered}</strong> 核心 + <strong>{stats.partial}</strong> 部分 / {stats.total} cells
+        </span>
+      </div>
+
+      <div className="matrix-wrap">
+        <div className="matrix">
+          <div className="matrix-corner"></div>
+          {D.layers.map(l => (
+            <div key={l.id} className="matrix-header">
+              <div className="matrix-header-name" style={{ color: l.color }}>{l.name}</div>
+            </div>
+          ))}
+
+          {D.cik.map(c => (
+            <React.Fragment key={c.id}>
+              <div className="row-label">
+                <span className="cik-id" style={{ color: D.cikColors[c.id].color }}>{c.id}</span>
+                <span className="cik-name">{c.name}</span>
+                <span className="cik-desc">{c.desc}</span>
+              </div>
+              {D.layers.map(l => {
+                const cellKey = `${l.id}/${c.id}`;
+                const cov = cellCoverage(l.id, c.id);
+                const colorScheme = cov.contributors[0]?.scheme;
+                const bgColor = colorScheme?.color || "#185FA5";
+                const opacity = cov.weight === 1 ? 0.85 : cov.weight === 0.5 ? 0.4 : 0;
+                const isSelected = selectedCell === cellKey;
+                const weightInfo = D.cellWeights[cellKey];
+                const tierClass = weightInfo ? `tier-${weightInfo.tier}` : "";
+                const isSurfaceRelated = surfaceRelatedCells.has(cellKey);
+                return (
+                  <div
+                    key={l.id}
+                    className={["cell", tierClass, isSelected && "selected", isSurfaceRelated && "surface-related"].filter(Boolean).join(" ")}
+                    onClick={() => setSelectedCell(isSelected ? null : cellKey)}
+                  >
+                    <div className="cell-coverage" style={{ background: bgColor, opacity }}></div>
+                    <div className="cell-content">
+                      <div className="cell-id">{l.short}-{c.id}</div>
+                      <div className="cell-desc">{D.cellDescriptions[cellKey]}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {/* 攻击面 chips 双向链接 + 点击下拉详情 */}
+      <div className="surface-bar">
+        <div className="surface-bar-label">
+          12 攻击面(点击高亮其涉及的 cells 并展开详情;再次点击关闭详情):
+        </div>
+        <div className="surface-chips">
+          {D.surfaces.map(s => {
+            const isActive = activeSurfaces.has(s.id);
+            const isCellRelated = cellRelatedSurfaces.has(s.id);
+            const isExpanded = expandedSurface === s.id;
+            return (
+              <span
+                key={s.id}
+                className={["surface-chip",
+                  isExpanded && "expanded",
+                  !isExpanded && isActive && "active",
+                  !isExpanded && !isActive && isCellRelated && "cell-related"
+                ].filter(Boolean).join(" ")}
+                onClick={() => {
+                  toggleSurface(s.id);
+                  setExpandedSurface(isExpanded ? null : s.id);
+                }}
+                title={s.name}
+              >
+                {s.id} {s.short}
+                <span className="surface-chip-caret">▾</span>
+              </span>
+            );
+          })}
+        </div>
+
+        {expandedSurface && (() => {
+          const s = D.surfaces.find(x => x.id === expandedSurface);
+          const cells = D.surfaceToCells[s.id] || [];
+          return (
+            <div className="surface-detail-panel">
+              <div className="sd-head">
+                <span className="sd-id">{s.id}</span>
+                <span className="sd-name">{s.name}</span>
+                <span className="sd-close" onClick={(e) => { e.stopPropagation(); setExpandedSurface(null); }}>✕</span>
+              </div>
+              <div className="sd-row"><strong>描述</strong><span>{s.desc}</span></div>
+              <div className="sd-row"><strong>典型威胁</strong><span className="threat-text">{s.threat}</span></div>
+              <div className="sd-row">
+                <strong>涉及 cells</strong>
+                <div className="sd-cells">
+                  {cells.length > 0 ? cells.map(k => {
+                    const [lid, cid] = k.split("/");
+                    const layer = D.layers.find(x => x.id === lid);
+                    return <span key={k} className="sd-cell-tag">{layer.short}-{cid}</span>;
+                  }) : <span style={{ color: "#bbb" }}>无</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* Cell detail */}
+      <div className="detail-panel">
+        {selectedCell ? (() => {
+          const [lid, cid] = selectedCell.split("/");
+          const layer = D.layers.find(x => x.id === lid);
+          const cik = D.cik.find(x => x.id === cid);
+          const surfaces = cellSurfaces(lid, cid);
+          const cov = cellCoverage(lid, cid);
+          const weightInfo = D.cellWeights[selectedCell];
+          return (
+            <div>
+              <h4>
+                {layer.name} × {cik.name}({cik.id}) — <span style={{ color: "#888", fontWeight: 400, fontSize: 13 }}>{layer.short}-{cid}</span>
+              </h4>
+              <div style={{ color: "#666", fontSize: 12, marginBottom: 4 }}>{D.cellDescriptions[selectedCell]}</div>
+              {weightInfo?.note && (
+                <div style={{ color: "#854F0B", fontSize: 12, fontStyle: "italic" }}>{weightInfo.note}</div>
+              )}
+
+              <div className="detail-section">
+                <strong>涉及攻击面:</strong>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                  {surfaces.length > 0 ? surfaces.map(s => (
+                    <span key={s.id} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 4, background: "#f0eeeb", color: "#555" }}>{s.id} {s.short}</span>
+                  )) : <span style={{ color: "#bbb", fontSize: 12 }}>(此 cell 暂无关联攻击面)</span>}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <strong>当前激活方案的覆盖:</strong>
+                <div style={{ marginTop: 6 }}>
+                  {cov.contributors.length > 0 ? cov.contributors.map(c => (
+                    <div key={c.scheme.id} style={{ fontSize: 12, color: "#555", marginBottom: 2 }}>
+                      <span style={{ background: c.scheme.bg, color: c.scheme.color, padding: "1px 7px", borderRadius: 4, fontSize: 11, marginRight: 6 }}>{c.scheme.name}</span>
+                      {c.weight === 1 ? "核心覆盖" : "部分覆盖"}
+                    </div>
+                  )) : <span style={{ color: "#bbb", fontSize: 12 }}>(当前激活方案不覆盖此 cell)</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })() : <span className="empty">点击任一 cell 查看详情;或点击下方攻击面 chip 反向定位 cell。</span>}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+</script>
+</body>
+</html>

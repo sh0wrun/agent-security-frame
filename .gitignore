@@ -1,0 +1,25 @@
+# 构建产出
+output/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+
+# Node / 工具链
+node_modules/
+.cache/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# 日志与临时
+*.log
+*.tmp
