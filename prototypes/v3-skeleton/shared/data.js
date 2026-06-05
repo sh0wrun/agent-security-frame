@@ -359,6 +359,32 @@ window.V3_DATA = {
         // TODO: 骨架 B 数据待校准(若启用)
       },
     },
+    {
+      id: "AARM",
+      name: "AARM v1(规范)",
+      desc: "CSA 代理控制平面工作组 — 运行时安全开放规范(spec only,not a deployable scheme)",
+      color: "#0F766E",
+      bg: "#CCFBF1",
+      author: "CSA Agent Control Plane WG(Errico H. 等 14 名工作组成员,2025)",
+      paper: "AARM v1 Specification — aarm.dev",
+      github: "https://github.com/aarm-dev/docs",
+      coreProblem: "运行时安全规范(spec,not a tool)。定义 7 组件(行动中介 / 上下文累积 / 策略引擎 / 批准服务 / 延迟服务 / 收据生成 / 遥测)+ 5 决策(ALLOW / DENY / MODIFY / STEP_UP / DEFER)+ 加密签名防篡改收据。一致性级别:Core R1-R6 / Extended R1-R9。本身不部署,任何工具实现可声明 AARM 一致 — 它是「事中 + 事后」格点上的标准锚。",
+      // AARM 核心战场在事中(全 3 格)+ 事后审计(C+K),跨智能体上下文积累浅覆盖
+      coverageA: {
+        "pre/I": 0.5,    // R6 要求身份绑定,但准入流程不在 spec 内
+        "in/C": 1,       // 行动中介 + 5 决策 = C-In 主战场
+        "in/I": 1,       // 决策必须基于身份判定
+        "in/K": 1,       // 意图对齐评估(嵌入相似性)= K-In 主战场
+        "post/C": 1,     // 收据生成器 + 遥测导出器 = C-Post 审计主战场
+        "post/I": 0.5,   // 收据绑定身份链
+        "post/K": 1,     // 防篡改收据 = 上下文-决策-结果完整性,K-Post 核心
+        "cross/C": 0.5,  // 上下文累积器跨会话但多智能体协同非 spec 重点
+        "cross/I": 0.5,  // 身份贯穿调用,但跨智能体 IATP 类协议未定义
+      },
+      coverageB: {
+        // TODO: 骨架 B 数据待校准(若启用)
+      },
+    },
   ],
 
   // CIK 维度的视觉色(用于骨架 B 的 cell 内小标签)

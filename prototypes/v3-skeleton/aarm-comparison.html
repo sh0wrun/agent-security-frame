@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AARM 接入后的方案对比 — 7 方案在核心矩阵上的「防护形状」</title>
+<script src="vendor/react.production.min.js"></script>
+<script src="vendor/react-dom.production.min.js"></script>
+<script src="vendor/babel.min.js"></script>
+<script src="shared/data.js"></script>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --card-bg: #fff;
+    --border: #e8e6e3;
+    --text-primary: #222;
+    --text-secondary: #555;
+    --text-muted: #888;
+    --aarm-color: #0F766E;
+    --aarm-bg: #CCFBF1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    background: var(--bg); color: var(--text-primary); margin: 0; padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1340px; margin: 0 auto; padding: 32px 28px 40px; }
+
+  .page-header { margin-bottom: 22px; }
+  .page-title {
+    font-size: 24px; font-weight: 500; color: var(--text-primary);
+    margin: 0 0 6px;
+  }
+  .page-subtitle {
+    font-size: 13.5px; color: var(--text-secondary); line-height: 1.7;
+    margin: 0; padding: 14px 18px; background: var(--card-bg);
+    border: 0.5px solid var(--border); border-radius: 10px;
+  }
+  .page-subtitle strong { color: var(--text-primary); }
+  .page-subtitle .aarm-tag {
+    display: inline-block; padding: 1.5px 8px; margin-right: 6px;
+    background: var(--aarm-bg); color: var(--aarm-color);
+    border-radius: 4px; font-size: 11.5px; font-weight: 500; letter-spacing: 0.3px;
+  }
+
+  /* Schemes Grid */
+  .schemes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 14px; margin-bottom: 22px;
+  }
+  .scheme-card {
+    background: var(--card-bg);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px 14px;
+    position: relative; overflow: hidden;
+  }
+  .scheme-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--s-color);
+  }
+  .scheme-card.is-aarm {
+    border: 1px solid var(--aarm-color);
+    box-shadow: 0 4px 16px rgba(15, 118, 110, 0.10);
+  }
+  .scheme-card.is-aarm::after {
+    content: "★ 新增"; position: absolute; top: 12px; right: 12px;
+    font-size: 11px; font-weight: 500; padding: 2px 8px;
+    background: var(--aarm-color); color: #fff; border-radius: 4px;
+  }
+
+  .sc-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .sc-name { font-size: 16px; font-weight: 500; }
+  .sc-breadth {
+    font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    background: var(--s-bg); color: var(--s-color);
+    margin-left: auto; font-weight: 500;
+  }
+  .sc-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
+
+  .mm-wrap { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
+  .mini-matrix { display: grid; grid-template-columns: 22px repeat(4, 32px); gap: 2px; }
+  .mm-corner { padding: 1px; }
+  .mm-col-h { font-size: 8.5px; color: #999; text-align: center; padding: 2px 0; line-height: 1.2; }
+  .mm-row-l {
+    font-size: 11px; color: var(--text-secondary);
+    padding: 2px; background: #f5f4f1; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center; font-weight: 500;
+  }
+  .mm-cell { height: 18px; border-radius: 3px; }
+  .mm-side { flex: 1; font-size: 11px; color: #666; line-height: 1.55; padding-top: 14px; }
+  .mm-side .arena-label { font-size: 10px; color: #aaa; letter-spacing: 0.3px; margin-bottom: 2px; }
+  .mm-side .arena-val { font-size: 12px; color: #444; font-weight: 500; margin-bottom: 8px; }
+
+  .sc-problem {
+    font-size: 11.5px; color: var(--text-secondary); line-height: 1.6;
+    padding: 8px 10px; background: #fafaf9; border-radius: 5px; margin-bottom: 8px;
+  }
+  .sc-link { font-size: 10.5px; word-break: break-all; }
+  .sc-link a { color: var(--s-color); text-decoration: none; }
+
+  /* Aggregate */
+  .aggregate {
+    padding: 18px 22px; background: var(--card-bg);
+    border: 0.5px solid var(--border); border-radius: 12px; margin-bottom: 14px;
+  }
+  .aggregate h4 { margin: 0 0 10px; font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .agg-row {
+    display: flex; align-items: center; gap: 12px; padding: 8px 0;
+    font-size: 13px; color: var(--text-secondary);
+    border-bottom: 0.5px solid #f0eeeb;
+  }
+  .agg-row:last-child { border-bottom: none; }
+  .agg-row .label { font-size: 11px; color: var(--text-muted); min-width: 110px; }
+  .agg-row .val { font-weight: 500; color: var(--text-primary); }
+  .agg-row.blank { color: #A32D2D; }
+  .agg-row.blank .val { color: #A32D2D; }
+  .blank-tag {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    background: #FCEBEB; color: #A32D2D; margin-right: 6px; font-weight: 500;
+  }
+
+  /* AARM 突出区 */
+  .aarm-spotlight {
+    background: linear-gradient(135deg, var(--aarm-bg) 0%, #fff 80%);
+    border: 1px solid var(--aarm-color);
+    border-radius: 12px; padding: 18px 22px; margin-bottom: 14px;
+  }
+  .aarm-spotlight h4 {
+    margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--aarm-color);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .aarm-spotlight h4::before {
+    content: "★"; font-size: 16px;
+  }
+  .aarm-spotlight .row {
+    display: grid; grid-template-columns: 130px 1fr; gap: 12px;
+    padding: 6px 0; font-size: 12.5px; line-height: 1.65;
+  }
+  .aarm-spotlight .row .k { font-size: 11.5px; color: var(--text-muted); }
+  .aarm-spotlight .row .v { color: var(--text-secondary); }
+  .aarm-spotlight .row .v strong { color: var(--text-primary); }
+  .aarm-spotlight .badge {
+    display: inline-block; padding: 1px 7px; margin: 0 3px 2px 0;
+    background: #fff; border: 0.5px solid var(--aarm-color);
+    color: var(--aarm-color); border-radius: 3px;
+    font-size: 11px; font-weight: 500;
+  }
+
+  .footer-note {
+    text-align: center; font-size: 11.5px; color: var(--text-muted);
+    margin-top: 16px; padding-top: 14px; border-top: 0.5px solid var(--border);
+  }
+  .footer-note a { color: var(--aarm-color); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useMemo } = React;
+const D = window.V3_DATA;
+
+function MiniMatrix({ scheme }) {
+  return (
+    <div className="mini-matrix">
+      <div className="mm-corner"></div>
+      {D.layers.map(l => <div key={l.id} className="mm-col-h">{l.short}</div>)}
+      {D.cik.map(c => (
+        <React.Fragment key={c.id}>
+          <div className="mm-row-l" style={{ color: D.cikColors[c.id].color }}>{c.id}</div>
+          {D.layers.map(l => {
+            const k = `${l.id}/${c.id}`;
+            const w = scheme.coverageA[k] || 0;
+            const bg = w > 0 ? scheme.color : "#f0eeeb";
+            const opacity = w === 1 ? 0.85 : w === 0.5 ? 0.4 : 1;
+            return <div key={l.id} className="mm-cell" style={{ background: bg, opacity }}></div>;
+          })}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function App() {
+  const arenaName = { pre: "事前", in: "事中", post: "事后", cross: "跨智能体" };
+
+  const stats = D.schemes.map(s => {
+    const entries = Object.entries(s.coverageA);
+    const breadth = entries.filter(([, v]) => v > 0).length;
+    const layerWeights = { pre: 0, in: 0, post: 0, cross: 0 };
+    entries.forEach(([k, v]) => {
+      const [lid] = k.split("/");
+      if (lid in layerWeights) layerWeights[lid] += v;
+    });
+    const mainArena = Object.entries(layerWeights).sort((a, b) => b[1] - a[1])[0][0];
+    const totalDepth = Object.values(layerWeights).reduce((a, b) => a + b, 0);
+    return { ...s, breadth, mainArena, layerWeights, totalDepth };
+  }).sort((a, b) => b.totalDepth - a.totalDepth);
+
+  // 全栈叠加统计
+  const covered = new Set();
+  D.schemes.forEach(s => Object.entries(s.coverageA).forEach(([k, v]) => { if (v > 0) covered.add(k); }));
+  const totalCells = D.layers.length * D.cik.length;
+  const blanks = [];
+  D.layers.forEach(l => D.cik.forEach(c => {
+    const k = `${l.id}/${c.id}`;
+    if (!covered.has(k)) blanks.push({ key: k, layer: l, cik: c });
+  }));
+
+  // AARM 单独取出做 spotlight
+  const aarm = stats.find(s => s.id === "AARM");
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">AARM 接入后的方案对比 — 7 方案在核心矩阵上的「防护形状」</h1>
+        <p className="page-subtitle">
+          <span className="aarm-tag">AARM v1</span>
+          <strong>把 CSA 代理控制平面工作组的运行时安全规范 AARM v1 加入对比矩阵后,7 个方案在 4 层 × CIK 三维 = 12 单元格的统一坐标系下做并排呈现。</strong>
+          AARM 是<em>规范(spec)</em>而非可部署方案 — 它定义了运行时安全实现的 7 组件 + 5 决策(ALLOW / DENY / MODIFY / STEP_UP / DEFER)+ 防篡改加密签名收据,任何工具实现可声明 AARM Core(R1-R6)或 Extended(R1-R9)一致性。卡片按总覆盖深度从高到低排序;每张含迷你矩阵 + 主战场 + 核心解决问题。
+        </p>
+      </div>
+
+      <div className="schemes-grid">
+        {stats.map(s => (
+          <div key={s.id}
+               className={"scheme-card" + (s.id === "AARM" ? " is-aarm" : "")}
+               style={{ "--s-color": s.color, "--s-bg": s.bg }}>
+            <div className="sc-head">
+              <span className="sc-name" style={{ color: s.color }}>{s.name}</span>
+              <span className="sc-breadth">{s.breadth}/12 cells</span>
+            </div>
+            <div className="sc-meta">{s.author}</div>
+            <div className="mm-wrap">
+              <MiniMatrix scheme={s} />
+              <div className="mm-side">
+                <div className="arena-label">主战场</div>
+                <div className="arena-val" style={{ color: s.color }}>{arenaName[s.mainArena]}</div>
+                <div className="arena-label">总深度</div>
+                <div className="arena-val">{s.totalDepth.toFixed(1)} / 12</div>
+              </div>
+            </div>
+            <div className="sc-problem">{s.coreProblem}</div>
+            <div className="sc-link"><a href={s.github} target="_blank" rel="noopener">{s.github}</a></div>
+          </div>
+        ))}
+      </div>
+
+      <div className="aarm-spotlight">
+        <h4>AARM 在矩阵中的定位 — 与其他 6 方案的关系</h4>
+        <div className="row">
+          <div className="k">AARM 性质</div>
+          <div className="v">
+            <strong>开放规范(spec)</strong>,不可直接部署。它定义"运行时必须做什么"而非"如何做",任意实现可声明
+            <span className="badge">AARM Core(R1-R6)</span>
+            <span className="badge">AARM Extended(R1-R9)</span>
+            一致性。
+          </div>
+        </div>
+        <div className="row">
+          <div className="k">主战场</div>
+          <div className="v"><strong>事中层(in/C + in/I + in/K 三格全覆盖)+ 事后审计(post/C + post/K)</strong> — 这是当前 AGT / AEGIS / CaMeL 的密集战场,AARM 把它们的"必要功能"形式化为可机器审计的一致性级别。</div>
+        </div>
+        <div className="row">
+          <div className="k">与 AGT / AEGIS</div>
+          <div className="v">同战场;AGT、AEGIS 是 AARM 的<strong>可部署实现</strong>(若声明一致)。AARM 提供"接口契约",AGT / AEGIS 提供"具体策略库 + 工程优化"。</div>
+        </div>
+        <div className="row">
+          <div className="k">与 CaMeL</div>
+          <div className="v">CaMeL 的 by-design 思想可以映射到 AARM 的 MODIFY + DEFER 两种决策状态;CaMeL 是研究工件,AARM 给它工程化路径。</div>
+        </div>
+        <div className="row">
+          <div className="k">与 DefenseClaw / Knownsec</div>
+          <div className="v">DefenseClaw 的事前层 Skill 扫描与 Knownsec 的 CVE 情报<strong>不在 AARM spec 范围</strong> — AARM 只管运行时,事前层属于"AARM 之外"的供应链治理。两者互补。</div>
+        </div>
+        <div className="row">
+          <div className="k">与 AI-Sentinel</div>
+          <div className="v">AI-Sentinel 是<strong>平台型方案</strong>,在跨层观测与会话级溯源上覆盖最广;AARM 是<strong>规范型工件</strong>,提供事中-事后单位的形式化标准。两者层级不同,可叠加。</div>
+        </div>
+        <div className="row">
+          <div className="k">独有贡献</div>
+          <div className="v">
+            5 决策粒度比传统三态(放行 / 拒绝 / 转人工)更细 —
+            <span className="badge">ALLOW</span><span className="badge">DENY</span>
+            <span className="badge">MODIFY 修改参数后放行</span>
+            <span className="badge">STEP_UP 升级人工</span>
+            <span className="badge">DEFER 暂停等更多上下文</span>
+            其中 MODIFY 与 DEFER 是当前主流方案普遍缺失的决策状态。
+          </div>
+        </div>
+      </div>
+
+      <div className="aggregate">
+        <h4>7 方案叠加后的工具栈总览</h4>
+        <div className="agg-row">
+          <span className="label">总 cells:</span>
+          <span><span className="val">{totalCells}</span> 个(4 层 × CIK)</span>
+        </div>
+        <div className="agg-row">
+          <span className="label">已覆盖:</span>
+          <span><span className="val">{covered.size}</span> 个 cells({Math.round(covered.size/totalCells*100)}%)</span>
+        </div>
+        <div className={"agg-row" + (blanks.length > 0 ? " blank" : "")}>
+          <span className="label">未覆盖盲点:</span>
+          <span>
+            <span className="val">{blanks.length}</span> 个
+            {blanks.length > 0 && <span style={{ marginLeft: 12 }}>{blanks.map(b => <span key={b.key} className="blank-tag">{b.layer.short}-{b.cik.id}</span>)}</span>}
+          </span>
+        </div>
+      </div>
+
+      <div className="footer-note">
+        © Agent Security Framework v3 · 7 方案对比矩阵 · 数据来源:<a href="https://github.com/sh0wrun/agent-security-frame">github.com/sh0wrun/agent-security-frame</a> · AARM v1 规范来源:<a href="https://aarm.dev">aarm.dev</a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+</script>
+</body>
+</html>

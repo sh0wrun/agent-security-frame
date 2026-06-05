@@ -60,7 +60,7 @@
 | **S5 工具调度** | R5 AGT 策略引擎, R6 AEGIS | R22 CaMeL | — |
 | **S6 策略引擎** | R5 AGT | R6 AEGIS | — |
 | **S7 容器** | R4 DefenseClaw 沙箱 | Kata Containers | R16 ClawSafety Scanner |
-| **S8 宿主 OS** | R5 AGT 三层 Ring | Kata Containers | R1 奇安信组件 |
+| **S8 宿主 OS** | R5 AGT 三层 Ring | Kata Containers | — |
 | **S9 LLM 接口** | R6 AEGIS, R5 AGT | R22 CaMeL | — |
 | **S10 智能体通信** | R5 AGT IATP | R4 DefenseClaw A2A scanner | AI-Sentinel |
 | **S11 部署管线** | R5 AGT 注册中心, R4 DefenseClaw | R18 Knownsec, R20 CVE Tracker | — |
@@ -154,4 +154,16 @@
 
 **第三步**:在 §A.3 与 §A.4 找到对应的防御工具与防御机制,选择落地组合。
 
-例如:面对"Memory Poisoning"威胁——第一步定位主防御层为事后(post/K);第二步定位攻击面为 S3 上下文窗口、对抗技术为 AT4 上下文操纵,主战场在第 6 章 §6.3;第三步定位防御机制为五维画像中的"模型上下文维度"+ 防篡改审计链 + Trust Decay 衰减,工具为 R5 AGT + R1 奇安信组件 + AI-Sentinel 平台层。三步即可完成从威胁到落地组合的检索。
+例如:面对"Memory Poisoning"威胁——第一步定位主防御层为事后(post/K);第二步定位攻击面为 S3 上下文窗口、对抗技术为 AT4 上下文操纵,主战场在第 6 章 §6.3;第三步定位防御机制为五维画像中的"模型上下文维度"+ 防篡改审计链 + Trust Decay 衰减,工具为 R5 AGT + AI-Sentinel 平台层。三步即可完成从威胁到落地组合的检索。
+
+## A.7 涌现型攻击的事后检测路径
+
+**背景**:涌现型攻击(以 R35 Viral Agent Loop 为代表,案例见第 5 章 §5.2.8)不落在 build-time 已知组件集合之上——第 3 章 §3.5.1 已明确:12 攻击面 S1-S12 是 build-time 完备的,涌现型攻击作为 runtime 补充而非替代,**不增设 S13、不扩张坐标系**。因此对其无法在事前准入侧静态枚举,只能在 runtime / 事后侧观测其扩散痕迹。
+
+**检测路径**(均落在事后运营层,回链第 6 章 §6.3):
+
+- **共享 KB / 长期记忆**:对写入分布做统计偏差告警与差异审计,捕捉异常的批量知识变更;
+- **A2A 传播链**:对 agent 间消息附加来源标签(provenance),以污点追踪(taint tracking)还原传播路径;
+- **跨 agent 知识变更**:对同一知识在多 agent 间的同步式异动做异常检测。
+
+**诚实标注**:上述手段只把"未被察觉的扩散"压缩为"可观测的偏差",属于事后压缩而非根治;runtime 检测与事前准入之间的 cross/K 产业空白,详见第 6 章 §6.4.9。
