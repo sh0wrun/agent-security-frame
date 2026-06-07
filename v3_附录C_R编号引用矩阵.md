@@ -2,19 +2,19 @@
 
 ---
 
-本附录把 v3.1 周期外部参考材料(R1-R45,含子文档 R3b)在十章 + 三附录中的引用情况汇聚为一张可检索矩阵(R1/R2/R13a/R13b 已退役入 §C.7 D 级)。每个单元格用以下符号标注:
+本附录把 v3.1 周期外部参考材料(R1-R45,含子文档 R3b)在十章 + 三附录中的引用情况汇聚为一张可检索矩阵(R1/R2/R13a/R13b/R24 已退役入 §C.7 D 级)。每个单元格用以下符号标注:
 
 - **(空白)**:该章节未引用此材料
 - **●**:该章节引用此材料(v3 已落定)
 - **●★**:该章节把此材料作为核心论据(理论根基或主要工程证据)
-- **○**:**v3.1 计划引用**——材料已入库,章节稿在 v3.1 周期内会按此映射添加引用(基于 `inbox/_ANALYSIS_2026-05-18-asf-positioning.md` 与 `materials/collection_log.md` 的章节命中预测)
-- **○★**:**v3.1 计划核心引用**——若 R30 / R35 升核心层(详见 §C.2),其位置预定为核心论据
+- **⊘**:材料已退役(见 §C.7 D 级),保留行以维持论据可追溯性(原则四)
+- **(○ / ○★ 已停用)**:2026-06-07 起,原"v3.1 计划引用"标记已逐条按正文 grep 核实,对齐为 ●(实际织入)或留空(未织入);矩阵不再使用计划态符号
 
 工程团队凭此矩阵可快速回答两类问题:**某 R 编号在哪些章节出现? 某章节的核心论据材料是哪些?**
 
 ---
 
-## C.1 25 × 10 引用矩阵
+## C.1 材料 × 章节 引用矩阵(2026-06-07 已对齐正文实际织入)
 
 | 编号 | Ch1 | Ch2 | Ch3 | Ch4 | Ch5 | Ch6 | Ch7 | Ch8 | Ch9 | Ch10 |
 |--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
@@ -39,19 +39,24 @@
 | **R21** CLAW-10 评估矩阵 | | ● | | | | | | | ●★ | |
 | **R22** CaMeL | ● | ● | ● | | | ●★ | ●★ | ● | ● | ●★ |
 | **R23** AgentDojo | ● | ● | | | | ● | ●★ | ● | ● | ● |
-| **R24** AARM v1 | | ○ | | | | ○ | ○ | ○ | | |
-| **R25** DTap | | ○ | | ○ | ○ | | ○★ | ○ | ○ | ○ |
-| **R26** SoK Jailbreak (Security Cube) | | ○ | | | | | ○ | | | |
-| **R27** Cisco Foundry Spec | | ○ | ○ | | | ○ | | | | |
-| **R28** ARGUS | | ○ | | | | ○ | ○ | | | |
-| **R29** Tool-Enabled Risks (MS) | | ○ | | ○ | | ○ | ○ | | | |
-| **R30** Authz Propagation | | ○ | ○ | | | ○★ | | | | |
-| **R31** Agents-Like-OS | | ○ | ○ | ○ | | ○ | | | | |
-| **R32** Confidential Computing | | ○ | | | | ○ | | | ○ | |
-| **R33** Industrialization of Offense | ○ | ○ | | | ○ | | | | ○ | |
-| **R34** Attack/Defense Landscape Survey | ○ | ○ | | | ○ | | | | | |
-| **R35** Supply Chain SOK | | ○ | ○ | | ○ | ○★ | | | | ○ |
-| **R36** Agentic+Cyber Survey | | ○ | | | | | | | ○ | |
+| **R24** AARM v1(⊘ 退役 → §C.7 D) | | | | | | | | | | |
+| **R25** DTap | | ● | | | | | ● | | | ● |
+| **R26** SoK Jailbreak (Security Cube) | | ● | | | | | ● | | | |
+| **R27** Cisco Foundry Spec | | ● | | | | ● | | | | |
+| **R28** ARGUS | | ● | | | | ● | ● | | | |
+| **R29** Tool-Enabled Risks (MS) | | ● | | ● | | | | | | |
+| **R30** Authz Propagation | | ● | ● | ● | | ●★ | | | | ● |
+| **R31** Agents-Like-OS(C 级·正文未织入) | | | | | | | | | | |
+| **R32** Confidential Computing | | ● | ● | | | ● | | | | ● |
+| **R33** Industrialization of Offense | ● | ● | ● | | | | | | | |
+| **R34** Attack/Defense Landscape Survey | | ● | | | | | | | | |
+| **R35** Supply Chain SOK | | ● | ● | | ● | ●★ | | | | ● |
+| **R36** Agentic+Cyber Survey | | ● | | | | | | | | |
+| **R37** promptfoo | | ● | | | | | ● | | | ● |
+| **R38** Anthropic Zero Trust | | ● | ● | | ● | ● | | | | |
+| **R43** Microsoft SafeAgents | | ● | | | | | ● | | | |
+| **R44** Snyk Skill 生态 | | ● | | | ● | | | | | |
+| **R45** Google Beyond Zero | | ● | ● | ● | | ● | | | | |
 
 ---
 
@@ -68,10 +73,10 @@
 
 这六份材料共同构成 v3 framework 的"理论根基"——任何对 framework 的工程改动都需要重新审视这六份材料的论据是否仍然成立。
 
-**v3.1 待决核心候选**(2 份,需基于研究笔记沉淀后决策):
+**v3.1 新增核心论据**(2 份,2026-06-07 升 A;判据为**结构贡献**而非引用频次):
 
-- **R30 Authorization Propagation**(arXiv:2605.05440,Kamiwaza AI):提出多 agent 系统中 7 项身份治理结构需求 + SIF 攻击 71% 成功率 + PCAS 48%→93% 合规跃升。**升核心理由**:为 Core 矩阵 cross/I 单元格提供工程化结构,与 R9 CIK 的 I 维度形成"理论根基 + 工程清单"双源。**升后影响范围**:Ch6 §6.4 跨智能体层全面重写。
-- **R35 Supply Chain SOK**(arXiv:2602.19555,ICLR 2026 Workshop):提出 MitE 威胁模型 + Viral Agent Loop + Zero-Trust Runtime Architecture。**升核心理由**:为 Ch5 §5.2 实证案例库 + Ch6 §6.1 事前准入层提供"运行时供应链"范式,补 R7 静态攻击面枚举的边界。**升后影响范围**:Ch6 §6.1 加 Stochastic Supply Chain 子节 + Ch3 §3.5.1 加 build-time 枚举元说明。
+- **R30 Authorization Propagation**(arXiv:2605.05440,Kamiwaza AI):提出多 agent 系统中 7 项身份治理结构需求 + SIF 攻击 71% 成功率 + PCAS 48%→93% 合规跃升。**升核理由**:为 Core 矩阵 cross/I 单元格提供工程化结构,与 R9 CIK 的 I 维度形成"理论根基 + 工程清单"双源。**落地**:Ch6 §6.4 跨智能体层(●★)+ Ch3/Ch4/Ch10。
+- **R35 Supply Chain SOK**(arXiv:2602.19555,ICLR 2026 Workshop):提出 MitE 威胁模型 + Viral Agent Loop + Zero-Trust Runtime Architecture。**升核理由**:为 Ch5 §5.2 实证案例库 + Ch6 §6.1 事前准入层提供"运行时供应链"范式,补 R7 静态攻击面枚举的边界。**落地**:Ch6 §6.1(●★)+ Ch5 §5.2 + Ch3 §3.5.1 build-time 元说明 + Ch10。
 
 **v3.1 其他可能升核心候选**(1 份,需基于研究笔记评估):
 
@@ -104,7 +109,7 @@
 | **第 3 章** | Agent 安全框架 | R9 |
 | **第 4 章** | 架构建模与攻击面 | R7 / R12 |
 | **第 5 章** | 威胁全景与攻击场景 | R3 / R7 / R8 / R12 |
-| **第 6 章** | 四层防御实施 | R4 / R5 / R6 / R12 / R22 |
+| **第 6 章** | 四层防御实施 | R4 / R5 / R6 / R12 / R22 / R30 / R35 |
 | **第 7 章** | 安全可验证性设计 | R6 / R8 / R9 / R22 / R23 |
 | **第 8 章** | 工具链选型与方案对比 | R4 / R5 / R6 |
 | **第 9 章** | 部署模式与企业适配 | R3 / R5 / R6 / R21 |
@@ -146,24 +151,24 @@ v3.0 → v3.1 演进期间共新增 **13 个 R 编号**(R24-R36,arXiv 批量);20
 
 | R 编号 | 入库时间 | 性质 | 笔记位置 | 升核心决策 | 引用矩阵状态 |
 |---|---|---|---|---|---|
-| R24 | 2026-05-07 | 开放规范(AARM v1) | 待补 | 否 | ○ |
-| R25 | 2026-05-10 | 学术+开源(DTap) | `R25_dtap.md` ✅ | 否 | ○(待 v3.1 章节稿改 → ●★) |
-| R26 | 2026-05-24 | 学术(SoK Jailbreak) | 待补 | 否 | ○ |
-| R27 | 2026-05-22 | 开源规范(Cisco Foundry) | inbox markdown 详分析 | 否 | ○ |
-| R28 | 2026-05-18 | 学术(ARGUS) | 待补 | 否 | ○ |
-| R29 | 2026-05-18 | 学术(Tool-Enabled Risks) | 待补 | 否 | ○ |
-| **R30** | 2026-05-18 | **学术(Authz Propagation)** | **v3.1 Phase 1 写中** | **v3.1 待决(强烈推荐升核心)** | **○ → 决策后改 ○★** |
-| R31 | 2026-05-18 | 学术(Agents-Like-OS) | 待补 | 否 | ○ |
-| **R32** | 2026-05-18 | **学术(Confidential Computing)** | **v3.1 Phase 1 写中** | **v3.1 待决(建议不升核心,但触发 §6.1.x 补强)** | **○** |
-| R33 | 2026-05-18 | 学术(Industrialization of Offense) | 待补 | 否 | ○ |
-| R34 | 2026-05-18 | 学术(Attack/Defense Survey) | 待补 | 否 | ○ |
-| **R35** | 2026-05-18 | **学术(Supply Chain SOK)** | **v3.1 Phase 1 写中** | **v3.1 待决(强烈推荐升核心)** | **○ → 决策后改 ○★** |
-| R36 | 2026-05-18 | 学术(Agentic+Cyber Survey) | 待补 | 否 | ○ |
-| **R37** | 2026-06-05 | 开源平台(promptfoo,OpenAI 系 red-teaming) | `R37_promptfoo.md` ✅ | 候选升核心(强烈推荐);YAML schema / 4 接口待二核 | ○(Ch7 §7.3 主集) |
-| **R38** | 2026-05-29 | **厂商框架(Anthropic《Zero Trust for AI Agents》+ 36pp eBook)** | `R38_..._for_agents.md` + `R38_..._ebook.pdf` ✅ 已核实 | **不升核心(厂商框架,非研究原语)**——4 子要素全命中既有 R(R5/R30/R12/R33);eBook 厚但平行于 ASF 自身,贡献 impossible-vs-tedious + 成熟度三层 + 对 R30/R32/R35 收敛验证;与 R45 并为"厂商零信任收敛" | ● Ch3 §3.2.1 已引 |
-| **R43** | 2026-06-05 | 开源框架(Microsoft SafeAgents) | `R43_microsoft_safeagents.md` ✅ | 不升核心(早期项目 14★/8 commits,半年观察期);ARIA/DHARMA 度量 paper 待发 | ○(Ch7 §7.3 候选集 10,2026-12 复查) |
-| **R44** | 2026-06-05 | 实证(Snyk Agent Skill 生态扫描) | `R44_snyk_skill_ecosystem_2605.28588.pdf` ✅ | 不升核心(实证证据/辅助)——3,984 skill / 76 恶意硬数据,挂 §6.1.2 / §6.1.6 供应链结构 | ○(待 Ch6 §6.1.2 引) |
-| **R45** | 2026-06-05 | 厂商愿景(Google《Beyond Zero》) | `R45_google_beyond_zero_2605.22985.pdf` ✅ | 不升核心(厂商零信任愿景)——与 R38 合并入"厂商零信任收敛"佐证 P1/R30,不单独收割 | ○(待 Ch3 §3.2.1 与 R38 并) |
+| R24 | 2026-05-07 | 开放规范(AARM v1) | — | 否(退役) | ⊘ 退役 → §C.7 D 级 |
+| R25 | 2026-05-10 | 学术+开源(DTap) | `R25_dtap.md` ✅ | 否(B 级) | ● Ch7 §7.3.1/§7.4 + Ch10 §10.6/§10.8 |
+| R26 | 2026-05-24 | 学术(SoK Jailbreak) | 待补 | 否(B 级) | ● Ch7 §7.2(Security Cube) |
+| R27 | 2026-05-22 | 开源规范(Cisco Foundry) | inbox markdown 详分析 | 否(B 级) | ● Ch6 §6.2.5 |
+| R28 | 2026-05-18 | 学术(ARGUS) | 待补 | 否(B 级) | ● Ch6 §6.2.4 + Ch7 §7.3 |
+| R29 | 2026-05-18 | 学术(Tool-Enabled Risks) | 待补 | 否(B 级) | ● Ch4 §4.4.3 |
+| **R30** | 2026-05-18 | **学术(Authz Propagation)** | **v3.1 已织入** | **A 核心(2026-06-07 升 A)** | **● Ch3/4/6/10(Ch6 ●★)** |
+| R31 | 2026-05-18 | 学术(Agents-Like-OS) | 待补 | **降 C 级**(2026-06-07) | **正文 0 引用 → C 级参考(§C.7)** |
+| **R32** | 2026-05-18 | **学术(Confidential Computing)** | **v3.1 已织入** | **不升核心(触发 §6.1.x 补强)** | **● Ch3/6/10** |
+| R33 | 2026-05-18 | 学术(Industrialization of Offense) | 待补 | 否(C 级) | ● Ch1 §1.2 + Ch3 §3.2.1 |
+| R34 | 2026-05-18 | 学术(Attack/Defense Survey) | 待补 | 否(C 级) | ● 仅 Ch2 综述(正文未逐节织入) |
+| **R35** | 2026-05-18 | **学术(Supply Chain SOK)** | **v3.1 已织入** | **A 核心(2026-06-07 升 A)** | **● Ch3/5/6/10(Ch6 ●★)** |
+| R36 | 2026-05-18 | 学术(Agentic+Cyber Survey) | 待补 | 否(C 级) | ● 仅 Ch2 综述(正文未逐节织入) |
+| **R37** | 2026-06-05 | 开源平台(promptfoo,OpenAI 系 red-teaming) | `R37_promptfoo.md` ✅ | 候选升核心(强烈推荐);YAML schema / 4 接口待二核 | ● Ch7 §7.2/§7.3 + Ch10 |
+| **R38** | 2026-05-29 | **厂商框架(Anthropic《Zero Trust for AI Agents》+ 36pp eBook)** | `R38_..._for_agents.md` + `R38_..._ebook.pdf` ✅ 已核实 | **不升核心(厂商框架,非研究原语)**——4 子要素全命中既有 R(R5/R30/R12/R33);eBook 厚但平行于 ASF 自身,贡献 impossible-vs-tedious + 成熟度三层 + 对 R30/R32/R35 收敛验证;与 R45 并为"厂商零信任收敛" | ● Ch3 §3.2.1 + Ch5/Ch6 |
+| **R43** | 2026-06-05 | 开源框架(Microsoft SafeAgents) | `R43_microsoft_safeagents.md` ✅ | 不升核心(早期项目 14★/8 commits,半年观察期);ARIA/DHARMA 度量 paper 待发 | ● Ch7 §7.3(候选集 10,2026-12 复查) |
+| **R44** | 2026-06-05 | 实证(Snyk Agent Skill 生态扫描) | `R44_snyk_skill_ecosystem_2605.28588.pdf` ✅ | 不升核心(实证证据/辅助)——3,984 skill / 76 恶意硬数据,挂供应链结构 | ● Ch5 供应链实证(实际落 Ch5,非原计划 Ch6) |
+| **R45** | 2026-06-05 | 厂商愿景(Google《Beyond Zero》) | `R45_google_beyond_zero_2605.22985.pdf` ✅ | 不升核心(厂商零信任愿景)——与 R38 合并入"厂商零信任收敛"佐证 P1/R30,不单独收割 | ● Ch3 §3.2.1 + Ch4/Ch6(与 R38 并) |
 
 **inbox 候选**(v3.1 周期内待毕业):
 
@@ -174,7 +179,7 @@ v3.0 → v3.1 演进期间共新增 **13 个 R 编号**(R24-R36,arXiv 批量);20
 - ~~Google Beyond Zero~~ → **已毕业 R45**(不升核,厂商零信任收敛,与 R38 并)
 - MCP 簇(OX advisory / HackerNews / Akamai / Adversa)——**预留 R39-R42**,待 Ch4 §4.8 草稿 review
 
-**v3.1 引用矩阵 ○ → ● 转换的触发条件**:章节稿实际写入对应引用 + commit 落地后,本附录的 ○ 改为 ●(或 ○★ 改为 ●★)。Phase 1-4 完成后本表 ✅ 标完整。
+**v3.1 引用矩阵 ○ → ● 对齐(2026-06-07 已完成)**:对 R24-R45 逐条按正文 `grep '\bRxx\b'`(排除 Ch2 目录与本附录台账)核实实际织入位置,○ 全部转 ●(实际织入)或留空(未织入);C.1 矩阵与 C.6 状态列已据此对齐。R30/R35 已于 2026-06-07 升 A(§C.2 / §C.7 已确认);R31 因正文 0 引用降 C 级。
 
 ---
 
@@ -199,7 +204,7 @@ v3.0 → v3.1 演进期间共新增 **13 个 R 编号**(R24-R36,arXiv 批量);20
 - **B 支撑证据**:R4、R8、R10、R11、R14、R15、R16、R17、R18、R19、R20、R21、R23、R25、R26、R27、R28、R29、R32、R37、R44(R26/R27/R28/R29 于 2026-06-05 织入 Ch4/6/7 升 B;R14/R15/R19/R20/R23 同时是 asf-eval 测试源,**禁止归档**)
 - **C 参考/对照/待整合**:
   - **厂商零信任收敛**(并为一条论点佐证 P1/R30,勿各自单独收割):R38、R45
-  - 综述/背景:R31、R33;**R34 与 R36 经核读非冗余**——R34(Berkeley / Bo Li / Dawn Song)是「安全 OF agents」攻防全景综述,R36(Tennessee Tech / Purdue / Bertino)是「agentic AI 用于网络安全」dual-use + 系统性风险/治理综述,scope 不同,各归其位保留
+  - 综述/背景/参考:**R31(正文 0 引用,纯参考——2026-06-07 由"否"降 C 级,原计划 §3.1/§4.1/§6.5 均未织入;如需可补写见 punch-list)**、R33(Ch1 §1.2 + Ch3 §3.2.1);**R34 与 R36 经核读非冗余**——R34(Berkeley / Bo Li / Dawn Song)是「安全 OF agents」攻防全景综述,R36(Tennessee Tech / Purdue / Bertino)是「agentic AI 用于网络安全」dual-use + 系统性风险/治理综述,scope 不同,各归其位保留(均仅 Ch2 综述)
   - **待整合 watchlist**(2026-06-05 已结清):R26 → §7.2 Security Cube / R27 → §6.2.5 沙箱铁律#9 + 8角色 / R28 → §6.2.4 ARGUS + §7.3 AgentLure / R29 → §4.4.3 环境授权,**均织入升 B**;R24(仅 URL 无本地文件)**退役降 D**
   - 观察期:R43(早期项目,2026-12 复查)
 - **D 遗产**:**R1、R2、R13a、R13b、R24**(2026-06-05 退役)。**R24** 仅 URL 无本地文件、3+ 周未整合而退役(如需可重新抓取毕业);其余四份入 `materials/07_legacy/`。注意:R1/R2/R13a/R13b **不是**因"零价值"退役(按用量本为 A/B/C),而是**编辑定位决策**——均为产品向的中文厂商/社区/治理指南,本书转国际/权威定位、砍国内等保角度后:R1/R2 的五维画像 / 不过夜 / 低摩擦去化为本书工程综合(R38/R45 佐证);R13a/R13b 的 MCP 投毒 / 工具链 / 记忆钓鱼等案例改引 R44 Snyk / R38 Anthropic / R11 PASB 承载权威性;七层模型改以 R7 为骨架。故"实测无零价值材料"结论仍成立,D 级 4 份属编辑退役。
